@@ -111,5 +111,5 @@ print(catFreqsO)
 dfRaw <- dfRaw[!dfRaw$insular_endemic == "unknown", ]
 
 # If any data were removed, write the cleaned data to file for use in imputation simulations. No alterations to complete-case dataset so we can leave it as is.
-fwrite(dfCC, "Data/TraitData/CleanedCompleteCaseDataset.csv")
-fwrite(dfRaw, "Data/TraitData/CleanedOriginalCaseDataset.csv")
+#fwrite(dfCC, "Data/TraitData/CleanedCompleteCaseDataset.csv")
+#fwrite(dfRaw, "Data/TraitData/CleanedOriginalCaseDataset.csv")
