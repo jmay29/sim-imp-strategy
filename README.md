@@ -15,7 +15,7 @@ Trait data for this project were obtained from:
 
 COI sequence data for this project were obtained from the Barcode of Life Data System (BOLD):
 
-> Ratnasingham, S., & Hebert, P. D. N. (2007). bold: The Barcode of Life Data System (http://www.barcodinglife.org). Molecular Ecology Notes, 7(3), 355–364. https://doi.org/10.1111/j.1471-8286.2007.01678.x
+> Ratnasingham, S., & Hebert, P. D. N. (2007). bold: The Barcode of Life Data System (http://www.barcodinglife.org). Molecular Ecology Notes, 7(3), 355–364. https://doi.org/10.1111/j.1471-8286.2007.01678.x. dx.doi.org/10.5883/DS-IMPMIX2
 
 RAG1 and c-mos sequence data for this project were obtained from:
 
