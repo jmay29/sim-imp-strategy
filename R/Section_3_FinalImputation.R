@@ -219,17 +219,6 @@ dfParamsOpt$trait <- gsub(pattern = paste("_", optMAR, sep = ""), replacement = 
 bestParams <- dfParamsOpt$param
 # Name according to traits.
 names(bestParams) <- dfParamsOpt$trait
-# If RF or MICE was selected as best method..
-if(grepl("RF", optMAR)){
-  # Rename parameter values.
-  bestParams[bestParams == 1] <- 100
-  bestParams[bestParams == 2] <- 1000
-} else if(grepl("MICE", optMAR)){
-  # Rename parameter values.
-  bestParams[bestParams == 1] <- 5
-  bestParams[bestParams == 2] <- 10
-  bestParams[bestParams == 3] <- 40
-}
 
 # For those traits that could not be simulated MAR, select best parameter based on 0.1 MCAR results (e.g. values are less than 10% missing in these cases).
 traitsNOMAR <- setdiff(traits, names(bestParams))
