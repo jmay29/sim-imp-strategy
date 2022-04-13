@@ -85,6 +85,7 @@ AverageErrors <- function(results, data, vars, missLevel = 0.1, method, paramTra
           dfResTrait <- dfRes[traitCol]
           # Extract the column that corresponds to the missingness level.
           missingCol <- dfResTrait[, s]
+          names(missingCol) <- rownames(dfResTrait) # ***
           # Append to repRates.
           repRates[[i]] <- missingCol
         }
@@ -98,8 +99,15 @@ AverageErrors <- function(results, data, vars, missLevel = 0.1, method, paramTra
         dfRep$SE <- apply(dfRep[, 1:reps], MARGIN = 1, FUN = std.error)
         # If parameter tracking is on...
         if(paramTrack == T) {
-          # Identify value of parameter that minimizes the imputation error rate.
-          bestParam <- which.min(dfRep$average)
+          if(method == "KNN"){
+            # Identify value of parameter that minimizes the imputation error rate.
+            bestParam <- which.min(dfRep$average) 
+          } else if(method == "RF"){
+            # Identify value of parameter that minimizes the imputation error rate.
+            bestParam <- which.min(dfRep$average) 
+            # Get name of parameter value.
+            bestParam <- as.numeric(rownames(dfRep[bestParam, ])) ## ***
+          }
         }
         
         # If the method is MeanMode...
@@ -147,6 +155,10 @@ AverageErrors <- function(results, data, vars, missLevel = 0.1, method, paramTra
         # Subset out the lowest error.
         avgError <- dfRepAll[bestParam, "average"]
         SE <- dfRepAll[bestParam, "SE"]
+        # Convert bestParam to name of parameter value instead of row name.
+        bestParam <- rownames(dfRepAll[bestParam, ])
+        # Remove X from name and convert to numeric class. ***
+        bestParam <- as.numeric(gsub("X", "", bestParam))
       }
       # Append value to finalRates.
       finalRates[[s]] <- avgError
@@ -246,7 +258,7 @@ AverageErrorsBias <- function(results, data, cont, cat, method, type = "MAR", pa
   # method = imputation method. One of "MeanMode", "KNN", "RF", or "MICE"
   # type = type of missingness pattern. One of "MAR" or "MNAR"
   # paramTrack = Whether to track the parameter tuning (e.g. optimal K for KNN, optimal ntree for RF, optimal m for MICE)
-
+  
   # If the method is MeanMode, KNN, or RF...
   if(method == "MICE" & type == "MAR"){
     # Extract variable names from the first element of results[[1]][[1]]. This is because MICE result is structured by parameter value and not trait.
@@ -284,6 +296,7 @@ AverageErrorsBias <- function(results, data, cont, cat, method, type = "MAR", pa
         # Subset by column for the trait of interest.
         traitCol <- grep(pattern = trait, x = colnames(dfRes))
         missingCol <- dfRes[, traitCol]
+        names(missingCol) <- rownames(dfRes) ### ***
         # Append to repRates.
         repRates[[i]] <- missingCol
       }
@@ -298,8 +311,15 @@ AverageErrorsBias <- function(results, data, cont, cat, method, type = "MAR", pa
       dfRep$SE <- apply(dfRep[, 1:reps], MARGIN = 1, FUN = std.error)
       # If parameter tracking is on...
       if(paramTrack == T) {
-        # Identify value of parameter that minimizes the imputation error rate.
-        bestParam <- which.min(dfRep$average)
+        if(method == "KNN"){
+          # Identify value of parameter that minimizes the imputation error rate.
+          bestParam <- which.min(dfRep$average) 
+        } else if(method == "RF"){
+          # Identify value of parameter that minimizes the imputation error rate.
+          bestParam <- which.min(dfRep$average) 
+          # Get name of parameter value.
+          bestParam <- as.numeric(rownames(dfRep[bestParam, ])) ## ***
+        }
       }
       # If the method is MeanMode...
       if(method == "MeanMode") {
@@ -347,6 +367,10 @@ AverageErrorsBias <- function(results, data, cont, cat, method, type = "MAR", pa
       # Subset out the lowest error.
       avgError <- dfRepAll[bestParam, "average"]
       SE <- dfRepAll[bestParam, "SE"]
+      # Convert bestParam to name of parameter value instead of row name.
+      bestParam <- rownames(dfRepAll[bestParam, ])
+      # Remove X from name and convert to numeric class. ***
+      bestParam <- as.numeric(gsub("X", "", bestParam))
       
     } else if(method == "MICE" & type == "MNAR"){
       # Create a list to hold the error rates for each replicate.
@@ -380,6 +404,10 @@ AverageErrorsBias <- function(results, data, cont, cat, method, type = "MAR", pa
       # Subset out the lowest error.
       avgError <- dfRepAll[bestParam, "average"]
       SE <- dfRepAll[bestParam, "SE"]
+      # Convert bestParam to name of parameter value instead of row name.
+      bestParam <- rownames(dfRepAll[bestParam, ])
+      # Remove trait from name and convert to numeric class. ***
+      bestParam <- as.numeric(gsub(paste(trait, ".", sep = ""), "", bestParam))
     }
     
     # Append to the list that holds rates for the trait.
@@ -458,6 +486,7 @@ AverageErrorsBias <- function(results, data, cont, cat, method, type = "MAR", pa
     }
   }
 }
+
 
 BackTransform <- function(origData, tfData, missData, cols) {
   
@@ -1117,6 +1146,8 @@ ImputeRF <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, ntrees, p
     }
     # Create a vector to hold the results for each value of ntree.
     paramRes <- vector(mode = "numeric", length = length(ntrees))
+    # Name according to ntrees.
+    names(paramRes) <- ntrees
     # Create a list to hold the imputed trait data for each value of ntree. ^
     l_dfImputedTrait <- CreateNamedList(listLength = length(ntrees), elementNames = ntrees)
     
@@ -1186,10 +1217,10 @@ ImputeRF <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, ntrees, p
   }
   
   # Imputed dataframe handling. ---
-  # Because we imputed data on a trait-by-trait basis, let's merge dataframes together for each parameter value so results are a bit easier to view. ^
+  # Because we imputed data on a trait-by-trait basis, let's merge dataframes together for each parameter value so results are a bit easier to view.
   # Take species name and missingness information from dfMissing.
   dfImputedParam <- dfMissing[, c("species_name", missingCols)]
-  # Make a list to hold the dataframes for each value of ntree. **
+  # Make a list to hold the dataframes for each value of ntree.
   l_dfImputedParam <- lapply(1:length(ntrees), function(x) dfImputedParam)
   names(l_dfImputedParam) <- ntrees
   
@@ -1215,7 +1246,7 @@ ImputeRF <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, ntrees, p
   }
   # Rearrange columns in l_dfImputedParam.
   l_dfImputedParam <- lapply(l_dfImputedParam, function(x) x[, c("species_name", cols, missingCols)])
-  # Return list of error rates for each trait and parameter value and list of imputed dataframes for each parameter value. ^
+  # Return list of error rates for each trait and parameter value and list of imputed dataframes for each parameter value.
   return(list(l_dfImputedParam = l_dfImputedParam, l_ErrorParams = l_ErrorParams))
 }
 
