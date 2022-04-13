@@ -1,4 +1,4 @@
-# Section 2. This script imputes trait data using mean/mode replacement, k-nearest neighbour (KNN), missForest (RF), and multivariate imputation using chained equations (MICE) with and without phylogeny (in the form of phylogenetic eigenvectors derived from a phylogenetic tree). Given a complete-case dataset, it simulates missingness scenarios by introducing NAs into the dataset at different percentages. It then uses imputation to fill in the missing values using the known observations. The outputs for this script are the imputation error rates for each trait in the dataset.
+# Section 2. This script imputes trait data using mean/mode replacement, k-nearest neighbour (KNN), missForest (RF), and multivariate imputation using chained equations (MICE) with and without phylogeny (in the form of phylogenetic eigenvectors derived from a phylogenetic tree). Given a complete-case dataset, it simulates data missing completely at random (MCAR), missing at random (MAR), and missingness not at random (MNAR). It then uses different imputation methods to fill in the missing values using the known observations. The outputs for this script are the imputation error rates for each trait in the dataset.
 
 # Acknowledgments. ----
 
@@ -70,9 +70,9 @@ contTraits <- l_traits[[1]]
 catTraits <- l_traits[[2]]
 
 # Create an integer for the number of replicates to use for missingness simulations and imputation. Default here is 10 replicates.
-r <- 2
+r <- 10
 # If simulating data missing completely at random (MCAR), create an integer for the maximum proportion of missingness to simulate (e.g. 0.4 would include simulations at 0.1, 0.2, 0.3. and 0.4 missingness). Default here is 0.4 missingness.
-ml <- 0.1
+ml <- 0.4
 
 # Missing not at random (MNAR) variable assignment. ---
 # If simulating data missing NOT at random (MNAR)..
