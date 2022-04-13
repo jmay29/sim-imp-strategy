@@ -2,7 +2,7 @@
 
 ### Acknowledgments. ----
 
-# The following tutorials were consulted:
+# The following tutorials were consulted for customizing bar and dot plots:
 # http://5.9.10.113/67164758/adding-hatches-or-patterns-to-ggplot-bars
 # https://coolbutuseless.github.io/package/ggpattern/articles/geom-gallery-geometry.html#colour-example-1
 # http://www.sthda.com/english/wiki/ggplot2-point-shapes
@@ -66,7 +66,6 @@ treeNames <- sapply(treeFiles, function(x) word(x, start = 2, sep = "_"))
 
 # Assign order name.
 order <- "Squamata"
-
 # Create vector of column names that contain taxonomic information.
 taxCols <- c("species_name", "class", "order", "family", "genus", "species")
 # Extract trait names.
@@ -78,7 +77,7 @@ contTraits <- l_traits[[1]]
 # Extract categorical traits.
 catTraits <- l_traits[[2]]
 # Identify integer (count) traits, if any.
-intTraits <- GetTraitNames(df = dfCC[, traits], class = "integer")
+intTraits <- GetTraitNames(dfCC[, traits], class = "integer")
 
 # Assign phylogenetic signal measure to use (one of "K" or "lambda")
 phyloSignal <- "lambda"
@@ -393,9 +392,7 @@ plotTitles <- list("continuous", "categorical")
 # Apply PlotPhySig function to list of dataframes.
 mapply(PlotPhySig, df = l_dfMetrics, title = plotTitles)
 
-
 # Plotting phylogenetic signal vs. error rate. ---
-
 # Split dfMetrics by trait.
 l_dfMetricTrait <- split(dfMetrics, dfMetrics$trait)
 # Create empty list to store the dataframe that contains error ratios and phylogenetic signal for each trait.
