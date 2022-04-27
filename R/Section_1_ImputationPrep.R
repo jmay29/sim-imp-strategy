@@ -23,9 +23,10 @@ dfCC <- fread("Data/TraitData/CompleteCaseDataset.csv", data.table = F)
 # OPTIONAL:
 # Let's create candidate complete-case datasets.
 # Apply the CritNumberLoop() function to dfRaw to create a list of potential complete-case dataframes that contain data for at least three traits. This function writes the candidate complete-case dataframes to file. Uncomment the following line if you wish to use this function:
-#CritNumberLoop(l_df = list(dfRaw), traitCols = traits, taxCols = "species_name")
+CritNumberLoop(data = dfRaw, traitCols = traits, taxCols = "species_name")
 # Once selected, read in the complete-case dataset by uncommenting the following line:
-#dfCC <- file.choose()
+fileName <- file.choose()
+dfCC <- read.csv(fileName)
 
 # If using phylogenetic imputation, read in tree(s).
 treeFiles <- list.files(path = "Data/RAxMLTrees/", pattern = "_ultra.tre")
