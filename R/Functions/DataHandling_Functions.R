@@ -88,7 +88,7 @@ CreateTraitSubset <- function(data, traits, taxonomy, speciesColumn, critNumber)
   
 }
 
-CritNumberLoop <- function(critNumbers =  seq(100, 5000, by = 100), l_df, traitCols, taxCols) {
+CritNumberLoop <- function(critNumbers =  seq(100, 5000, by = 100), data, traitCols, taxCols) {
   
   # Function to create complete-case datasets for trait data, considering different criterion for the required sample size.
   
@@ -103,7 +103,7 @@ CritNumberLoop <- function(critNumbers =  seq(100, 5000, by = 100), l_df, traitC
     # Take the ith critNumber.
     num <- critNumbers[[i]]
     # Create complete-case subsets for each taxon using the CreateTraitSubset() function.
-    dfCompleteCase <- CreateTraitSubset(data = data, traits = traitCols, taxonomy = taxCols, speciesColumn = "species_name", critNumber = num)
+    dfCompleteCase <- CreateTraitSubset(data, traits = traitCols, taxonomy = taxCols, speciesColumn = "species_name", critNumber = num)
     # If sample size criterion has been met (dfCompleteCase is a dataframe)..
     if(class(dfCompleteCase) == "data.frame"){
       # Write the dataframe to file using the WriteCompleteCases() function.
