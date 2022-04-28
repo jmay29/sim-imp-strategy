@@ -108,8 +108,8 @@ DecomposeTree <- function(tree, method = "PVR", evselection = "cutoff", cutoff =
     if(evselection == "cutoff"){
       # Extract the singular values so we can determine how many eigenvectors we should be using. 
       dfEigenvalues <- as.data.frame(PEM$d) ## Place singular values into dataframe.
-      # Square root to convert to obtains eigenvalues.
-      dfEigenvalues$`PEM$d` <- sqrt(dfEigenvalues$`PEM$d`)
+      # Square to convert to obtains eigenvalues.
+      dfEigenvalues$`PEM$d` <- dfEigenvalues$`PEM$d`*dfEigenvalues$`PEM$d`
       # How much variability does the eigenvalue explain?
       dfEigenvalues$variability <- dfEigenvalues$`PEM$d`/sum(dfEigenvalues$`PEM$d`)
       # Get the percentage.
