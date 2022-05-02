@@ -21,7 +21,7 @@ AppendEigenvectors <- function(data, vars, tree, predictors){
     # Make a complete-case subset of trait data.
     dfTrait <- na.omit(data[, c("species_name", trait)])
     # Decompose phylogenetic distrance matrix into orthogonal vectors (phylogenetic eigenvectors).
-    PEMtrait <- DecomposeTree(tree = tree, data = dfTrait, trait = trait, method = "PEM", evselection = "cutoff", cutoff = 65)
+    PEMtrait <- DecomposeTree(tree = tree, data = dfTrait, trait = trait, method = "PEM", evselection = "cutoff", cutoff = 95)
     # Update the PEM using derived parameters and extract the eigenvectors so we also have them for species with missing data (cite: Johnson et al. 2021).
     dfTraitEVs <- UpdatePEM(tree, alpha = PEMtrait$a, rate = PEMtrait$psi)
     # Subset to those eigenvectors selected according to the cutoff threshold.
@@ -46,7 +46,7 @@ AppendEigenvectors <- function(data, vars, tree, predictors){
   
 }
 
-DecomposeTree <- function(tree, method = "PVR", evselection = "cutoff", cutoff = 65, data, trait = NULL) {
+DecomposeTree <- function(tree, method = "PVR", evselection = "cutoff", cutoff = 95, data, trait = NULL) {
   
   # Function for decomposing phylogenetic distance matrix into orthogonal vectors using the PVRdecomp (package "PVR") or PEM.fitSimple (package "MPSEM") functions.
   
@@ -57,7 +57,7 @@ DecomposeTree <- function(tree, method = "PVR", evselection = "cutoff", cutoff =
   # tree = object of class "phylo". Branch lengths should be in expected # of subs/site/unit of time (ultrametric tree).
   # method = one of "PVR" 'phylogenetic eigenvector regression' or "PEM" phylogenetic eigenvector mapping
   # evselection = one of "cutoff" or "stepwise" methods for selecting eigenvector number. If cutoff is selected, a threshold variability method is used; if "stepwise" is selected, stepwise regressiod is used (function lmforwardsequentialAICc from the MPSEM package)
-  # cutoff = number indicating the variability cutoff for the eigenvalues for eigenvector selection (default is 65)
+  # cutoff = number indicating the variability cutoff for the eigenvalues for eigenvector selection (default is 95)
   # data = dataframe containing trait data
   # trait = when PEM is specified, indicates target trait (response variable)
   
