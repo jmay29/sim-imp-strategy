@@ -487,7 +487,6 @@ AverageErrorsBias <- function(results, data, cont, cat, method, type = "MAR", pa
   }
 }
 
-
 BackTransform <- function(origData, tfData, missData, cols) {
   
   # Function for applying back-transformations to a dataframe's continuous variables. This function takes into account whether a variable contains negative values originally.
@@ -1320,38 +1319,42 @@ RefineModel <- function(model, data){
   # Identify the names of the multi-categorical variables.
   multiCat <- names(which(factorLevels > 2))
   
-  # For every factor variable..
-  for(m in 1:length(factorLevels)){
-    # Get name of variable.
-    FV <- names(factorLevels)[[m]]
-    # If the variable is binary..
-    if(FV %in% binCat) {
-      # Identify p-value associated with FV.
-      index <- grep(FV, names(pVals))
-      # Since the name of the category compared to the reference level is appended to the name of the p-value, we are replacing the modified name with the name of the original variable (because we are eventually modifying the glm formula using the original variable name).
-      names(pVals)[index] <- FV
-      # If the variable is multi-categorical..
-    } else if(FV %in% multiCat) {
-      # Remove m from covariates.
-      modCov <- covariates[!covariates %in% FV]
-      # Create a new formula using modCov.
-      modForm <- as.formula(paste(response, "~", paste(modCov, collapse = "+")))
-      # Fit a logistic regression model without m.
-      modFit <- glm(modForm, data = dfShadow, family = "binomial", na.action = na.omit)
-      # Compare to original model.
-      result <- anova(modFit, model, test = "LRT")
-      # Extract the p-value from the result. This is necessary to obtain a p-value for the overall factor variable because it is multi-categorical.
-      modP <- result$`Pr(>Chi)`[2]
-      # Name according to FV.
-      names(modP) <- FV
-      # Identify p-values associated with different levels of multicategorical variable.
-      index <- grep(FV, names(pVals))
-      # Remove from original pVals.
-      pVals <- pVals[-index]
-      # Append new p-value for multi-categorical variable to pVals.
-      pVals <- c(pVals, modP)
+  # If there are factor variables..
+  if(length(catTraits) > 0){
+    # For every factor variable..
+    for(m in 1:length(factorLevels)){
+      # Get name of variable.
+      FV <- names(factorLevels)[[m]]
+      # If the variable is binary..
+      if(FV %in% binCat) {
+        # Identify p-value associated with FV.
+        index <- grep(FV, names(pVals))
+        # Since the name of the category compared to the reference level is appended to the name of the p-value, we are replacing the modified name with the name of the original variable (because we are eventually modifying the glm formula using the original variable name).
+        names(pVals)[index] <- FV
+        # If the variable is multi-categorical..
+      } else if(FV %in% multiCat) {
+        # Remove m from covariates.
+        modCov <- covariates[!covariates %in% FV]
+        # Create a new formula using modCov.
+        modForm <- as.formula(paste(response, "~", paste(modCov, collapse = "+")))
+        # Fit a logistic regression model without m.
+        modFit <- glm(modForm, data = dfShadow, family = "binomial", na.action = na.omit)
+        # Compare to original model.
+        result <- anova(modFit, model, test = "LRT")
+        # Extract the p-value from the result. This is necessary to obtain a p-value for the overall factor variable because it is multi-categorical.
+        modP <- result$`Pr(>Chi)`[2]
+        # Name according to FV.
+        names(modP) <- FV
+        # Identify p-values associated with different levels of multicategorical variable.
+        index <- grep(FV, names(pVals))
+        # Remove from original pVals.
+        pVals <- pVals[-index]
+        # Append new p-value for multi-categorical variable to pVals.
+        pVals <- c(pVals, modP)
+      }
     }
   }
+
   # If there are any non-significant terms in the model..
   if(any(pVals > 0.05)){
     # Set ALLSIG == F. This is an indicator variable to check that all terms are significant in the glm model. This is set to T when all terms are significant (p < 0.05) and the loop will end.
