@@ -44,21 +44,24 @@ source("R/Functions/Simpute_Functions.R")
 ### 2. Data loading and variable assignment. ----
 
 # Read in cleaned complete-case trait dataset.
-dfCC <- fread("Data/TraitData/CleanedCompleteCaseDataset.csv", data.table = F)
+fileName <- file.choose()
+dfCC <- read.csv(fileName)
 # Ensure blanks are NAs.
 dfCC[dfCC == ""] <- NA
 # Read in the cleaned original trait dataset.
-dfRaw <- fread("Data/TraitData/CleanedOriginalCaseDataset.csv", data.table = F)
+fileName <- file.choose()
+dfRaw <- read.csv(fileName)
 # Ensure blanks are NAs.
 dfRaw[dfRaw == ""] <- NA
 
-# If using phylogenetic imputation, read in trees.
-treeFiles <- list.files(path = "Data/RAxMLTrees/", pattern = "_ultra.tre")
-l_trees <- lapply(treeFiles, function(x) read.tree(paste("Data/RAxMLTrees/", x, sep = "")))
-# Name l_trees.
-names(l_trees) <- treeFiles
-# Create vector of tree names (used to name error rate files later on).
-treeNames <- sapply(treeFiles, function(x) word(x, start = 2, sep = "_"))
+# If using phylogenetic imputation, uncomment the following lines.
+# Read in trees. For example (these trees have all been matched to the trait data previously):
+# treeFiles <- list.files(path = "Data/RAxMLTrees/", pattern = "_ultra.tre")
+# l_trees <- lapply(treeFiles, function(x) read.tree(paste("Data/RAxMLTrees/", x, sep = "")))
+# # Name l_trees.
+# names(l_trees) <- treeFiles
+# # Create vector of tree names (used to name error rate files later on).
+# treeNames <- sapply(treeFiles, function(x) word(x, start = 2, sep = "_"))
 
 # Extract trait names.
 traits <- setdiff(colnames(dfCC), "species_name")
@@ -87,7 +90,7 @@ l_abs <- as.list(rep(F, length(contTraits)))
 names(l_abs) <- contTraits
 # For example, if we want to use absolute values for the latitude trait:
 l_abs$latitude_centroid_from_roll_et_al_2017 <- T
-# Make list of categories for which to introduce NAs for categorical traits.
+# Make list of categories for which to introduce NAs for categorical traits. For example:
 lapply(dfCC[, catTraits], table)
 l_categories <- list(insular_endemic = "yes", activity_time = "Nocturnal")
 
@@ -102,6 +105,9 @@ set.seed(547)
 missPatts <- c("MCAR", "MAR", "MNAR")
 # Create empty list to hold results for each missingness pattern.
 l_l_simputeResults <- CreateNamedList(listLength = length(missPatts), elementNames = names(missPatts))
+
+# Are you using phylogenetic imputation? Default is false.
+phyImp <- F
 
 # For every missingness pattern..
 for(m in 1:length(missPatts)){
@@ -123,76 +129,91 @@ for(m in 1:length(missPatts)){
     # If the missingness pattern is MCAR..
     if(MP == "MCAR"){
       # Simpute without phylogeny.
-      result <- simputeFunc(data = dfCC, vars = traits, int = r, missLevel = ml)
+      results <- simputeFunc(data = dfCC, vars = traits, int = r, missLevel = ml)
       # If the imputation method is MeanMode..
       if(impMethod == "MeanMode"){
         # Apply AverageErrors() function to write average error rates to file.
-        AverageErrors(results = result$errorRates, data = dfCC, vars = traits, method = impMethod, missLevel = ml)
-        # Append result to l_simputeResults.
-        l_simputeResults[[f]] <- result
+        AverageErrors(results = results$errorRates, data = dfCC, vars = traits, method = impMethod, missLevel = ml)
+        # Append results to l_simputeResults.
+        l_simputeResults[[f]] <- results
       } else {
         # Apply AverageErrors() function to write average error rates to file. Set paramTrack = T so we can track parameter values as well.
-        AverageErrors(results = result$errorRates, data = dfCC, vars = traits, method = impMethod, missLevel = ml, paramTrack = T)
-        # Simpute with phylogeny.
-        phyResult <- mapply(simputeFunc, tree = l_trees, MoreArgs = list(data = dfCC, vars = traits, int = r, missLevel = ml, phyImp = T), SIMPLIFY = F)
-        # Extract error rates from result object.
-        errors <- lapply(phyResult, function(x) x$errorRates)
-        # Write average error rates to file.
-        mapply(AverageErrors, results = errors, treeName = treeNames, MoreArgs = list(data = dfCC, vars = traits, method = impMethod, missLevel = ml, paramTrack = T), SIMPLIFY = F)
-        # Combine results.
-        l_results <- list(withoutPhy = result, withPhy = phyResult) 
-        # Append l_results to l_simputeResults.
-        l_simputeResults[[f]] <- l_results
+        AverageErrors(results = results$errorRates, data = dfCC, vars = traits, method = impMethod, missLevel = ml, paramTrack = T)
+        # If phylogenetic imputation was chosen..
+        if(phyImp == T){
+          # Simpute with phylogeny.
+          phyResult <- mapply(simputeFunc, tree = l_trees, MoreArgs = list(data = dfCC, vars = traits, int = r, missLevel = ml, phyImp = T), SIMPLIFY = F)
+          # Extract error rates from result object.
+          errors <- lapply(phyResult, function(x) x$errorRates)
+          # Write average error rates to file.
+          mapply(AverageErrors, results = errors, treeName = treeNames, MoreArgs = list(data = dfCC, vars = traits, method = impMethod, missLevel = ml, paramTrack = T), SIMPLIFY = F)
+          # Combine results.
+          results <- list(withoutPhy = results, withPhy = phyResult) 
+        }
+        # Append results to l_simputeResults.
+        l_simputeResults[[f]] <- results
       }
       # If the missingness pattern is MAR..
     } else if(MP == "MAR") {
       # Simpute without phylogeny.
-      result <- simputeFunc(data = dfCC, raw = dfRaw, vars = traits, int = r)
+      results <- simputeFunc(data = dfCC, raw = dfRaw, vars = traits, int = r)
       # If the imputation method is MeanMode..
       if(impMethod == "MeanMode"){
         # Apply AverageErrorsBias() function to write average error rates to file.
-        AverageErrorsBias(results = result$errorRates, data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP)
-        # Append result to l_simputeResults.
-        l_simputeResults[[f]] <- result
+        AverageErrorsBias(results = results$errorRates, data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP)
+        # Append results to l_simputeResults.
+        l_simputeResults[[f]] <- results
       } else {
         # Apply AverageErrorsBias() function to write average error rates to file. Set paramTrack = T so we can track parameter values as well.
-        AverageErrorsBias(results = result$errorRates, data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP, paramTrack = T)
-        # Simpute with phylogeny.
-        phyResult <- mapply(simputeFunc, tree = l_trees, MoreArgs = list(data = dfCC, raw = dfRaw, vars = traits, int = r, phyImp = T), SIMPLIFY = F)
-        # Extract error rates from result object.
-        errors <- lapply(phyResult, function(x) x$errorRates)
-        # Write average error rates to file.
-        mapply(AverageErrorsBias, results = errors, treeName = treeNames, MoreArgs = list(data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP, paramTrack = T), SIMPLIFY = F)
-        # Combine results.
-        l_results <- list(withoutPhy = result, withPhy = phyResult) 
+        AverageErrorsBias(results = results$errorRates, data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP, paramTrack = T)
+        # If phylogenetic imputation was chosen..
+        if(phyImp == T){
+          
+          # Simpute with phylogeny.
+          phyResult <- mapply(simputeFunc, tree = l_trees, MoreArgs = list(data = dfCC, raw = dfRaw, vars = traits, int = r, phyImp = T), SIMPLIFY = F)
+          # Extract error rates from results object.
+          errors <- lapply(phyResult, function(x) x$errorRates)
+          # Write average error rates to file.
+          mapply(AverageErrorsBias, results = errors, treeName = treeNames, MoreArgs = list(data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP, paramTrack = T), SIMPLIFY = F)
+          # Combine results.
+          results <- list(withoutPhy = results, withPhy = phyResult) 
+          
+        }
         # Append l_results to l_simputeResults.
-        l_simputeResults[[f]] <- l_results
+        l_simputeResults[[f]] <- results
       }
       # If the missingness pattern is MNAR..
     } else if(MP == "MNAR"){
       # Simpute without phylogeny.
-      result <- simputeFunc(data = dfCC, vars = traits, int = r, quantiles = l_quantiles, directions = l_directions, absolutes = l_abs, categories = l_categories)
+      results <- simputeFunc(data = dfCC, vars = traits, int = r, quantiles = l_quantiles, directions = l_directions, absolutes = l_abs, categories = l_categories)
+      # If the imputation method is MeanMode..
       if(impMethod == "MeanMode"){
         # Apply AverageErrorsBias() function to write average error rates to file.
-        AverageErrorsBias(results = result$errorRates, data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP)
-        # Append result to l_simputeResults.
-        l_simputeResults[[f]] <- result
+        AverageErrorsBias(results = results$errorRates, data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP)
+        # Append results to l_simputeResults.
+        l_simputeResults[[f]] <- results
       } else {
         # Apply AverageErrorsBias() function to write average error rates to file. Set paramTrack = T so we can track parameter values as well.
-        AverageErrorsBias(results = result$errorRates, data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP, paramTrack = T)
-        # Simpute with phylogeny.
-        phyResult <- mapply(simputeFunc, tree = l_trees, MoreArgs = list(data = dfCC, vars = traits, int = r, quantiles = l_quantiles, directions = l_directions, absolutes = l_abs, categories = l_categories, phyImp = T), SIMPLIFY = F)
-        # Extract error rates from result object.
-        errors <- lapply(phyResult, function(x) x$errorRates)
-        # Write average error rates to file.
-        mapply(AverageErrorsBias, results = errors, treeName = treeNames, MoreArgs = list(data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP, paramTrack = T), SIMPLIFY = F)
-        # Combine results.
-        l_results <- list(withoutPhy = result, withPhy = phyResult) 
+        AverageErrorsBias(results = results$errorRates, data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP, paramTrack = T)
+        # If phylogenetic imputation was chosen..
+        if(phyImp == T){
+          
+          # Simpute with phylogeny.
+          phyResult <- mapply(simputeFunc, tree = l_trees, MoreArgs = list(data = dfCC, vars = traits, int = r, quantiles = l_quantiles, directions = l_directions, absolutes = l_abs, categories = l_categories, phyImp = T), SIMPLIFY = F)
+          # Extract error rates from results object.
+          errors <- lapply(phyResult, function(x) x$errorRates)
+          # Write average error rates to file.
+          mapply(AverageErrorsBias, results = errors, treeName = treeNames, MoreArgs = list(data = dfCC, cont = contTraits, cat = catTraits, method = impMethod, type = MP, paramTrack = T), SIMPLIFY = F)
+          # Combine results.
+          results <- list(withoutPhy = results, withPhy = phyResult) 
+          
+        }
         # Append l_results to l_simputeResults.
-        l_simputeResults[[f]] <- l_results
+        l_simputeResults[[f]] <- results
       }
     }
   }
   # Append results to l_l_simputeResults.
   l_l_simputeResults[[m]] <- l_simputeResults
 }
+
