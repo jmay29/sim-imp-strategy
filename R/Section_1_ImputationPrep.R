@@ -1,6 +1,6 @@
 # Section 1. Script for preparing data for imputation process including checking distributions and categorical frequencies.
 
-# Acknowledgments. 
+# Acknowledgments. ----
 
 # Trait data used in this study obtained from:
 # Meiri, S. Traits of lizards of the world: Variation around a successful evolutionary design. Global Ecol Biogeogr. 2018; 27: 1168– 1172. https://doi.org/10.1111/geb.12773
@@ -131,9 +131,15 @@ print(catFreqsCC)
 catFreqsO <- lapply(na.omit(l_dfTraits$Original[, catTraits]), ScreenCategories)
 print(catFreqsO)
 
-# At this point, you would remove categories that fall below the indicated threshold (e.g. comprising less than 10% of the data). If you remove observations here, it is recommended to run the ScreenCategories function again to ensure classes are balanced.
+# At this point, you would remove categories that fall below the indicated threshold (e.g. comprising less than 10% of the data). 
 # Example:
 l_dfTraits$Original <- l_dfTraits$Original[!l_dfTraits$Original$insular_endemic == "unknown", ]
+
+# If you remove observations here, it is recommended to run the ScreenCategories function again to ensure classes are balanced.
+#catFreqsCC <- lapply(na.omit(l_dfTraits$Complete[, catTraits]), ScreenCategories)
+#print(catFreqsCC)
+#catFreqsO <- lapply(na.omit(l_dfTraits$Original[, catTraits]), ScreenCategories)
+#print(catFreqsO)
 
 # If any data were removed, write the cleaned data to file for use in imputation simulations.
 #fwrite(l_dfTraits$Complete, "Data/TraitData/CleanedCompleteCaseDataset.csv")
