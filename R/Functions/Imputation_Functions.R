@@ -530,14 +530,15 @@ BackTransform <- function(origData, tfData, missData, cols) {
   return(tfData)
 }
 
-BindAndOrganize <- function(data, vars){
+BindAndOrganize <- function(data, vars, indMiss = T){
   
   # Function that binds missingness indicator columns (bind_shadow function from the "naniar" package) and reorganizes the columns in the dataframe.
   # data = dataframe with missing values and column called species_name
   # vars = names of columns with trait variables
+  # indMiss = create missingness indicator column only if column has missing values (T or F)
   
   # We need to keep track of which observations were imputed by adding a shadow matrix (bind_shadow() function).
-  dfMiss <- bind_shadow(data, only_miss = T)
+  dfMiss <- bind_shadow(data, only_miss = indMiss)
   # Get the names of the missing columns as we will needs these later on.
   missingCols <- colnames(dfMiss)[grep(pattern = "_NA", x = colnames(dfMiss))]
   # Reorganize the dataframe.
