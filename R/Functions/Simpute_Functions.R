@@ -958,8 +958,10 @@ KNNSimputeMNAR <- function(data, vars, int = 100, k = 50, quantiles = NULL, dire
     for(c in 1:length(l_dfMissTrait)){
       l_dfMissTrait[[c]] <- merge(l_dfMissTrait[[c]], l_dfMissTraitOrig[[c]][, c("species_name", catTraits)], by = "species_name")
     }
-    # Bind missingness indicator columns and reorganize the dataframe.  
-    l_dfMissTrait <- lapply(l_dfMissTrait, BindAndOrganize, vars = vars)
+    # Bind missingness indicator columns and reorganize the dataframe. Setting indMiss = F so we can create missingness indicator columns for all columns even if they don't have missing values. This is so we can create a variable of missingness column names more easily later down the line. ***
+    l_dfMissTrait <- lapply(l_dfMissTrait, BindAndOrganize, vars = vars, indMiss = F)
+    # Remove species_name missingness indicator column. ***
+    l_dfMissTrait <- lapply(l_dfMissTrait, function(x) x[, !colnames(x) %in% "species_name_NA"])
     # Make sure l_dfMissTrait and dfLog (the original data) are all ordered alphabetically by species_name.  
     l_dfMissTrait <- lapply(l_dfMissTrait, function(x) x[order(x$species_name), ])
     dfLog <- dfLog[order(dfLog$species_name), ]
@@ -1006,6 +1008,7 @@ KNNSimputeMNAR <- function(data, vars, int = 100, k = 50, quantiles = NULL, dire
       l_dfImp <- impResult[[1]]
       # Extract errorRates.
       l_Error <- impResult[[2]]
+      
     } else if(phyImp == F){
       # Impute data only using trait data.
       l_impResult <- mapply(ImputeKNN, dfMissing = l_dfMissTrait, cols = vars, MoreArgs = list(dfTrue = dfLog, cont = contTraits, cat = catTraits, k = 50, predictors = l_predictors), SIMPLIFY = F)
@@ -1652,8 +1655,10 @@ RFSimputeMNAR <- function(data, vars, int = 100, ntrees = c(100, 1000), quantile
     for(c in 1:length(l_dfMissTrait)){
       l_dfMissTrait[[c]] <- merge(l_dfMissTrait[[c]], l_dfMissTraitOrig[[c]][, c("species_name", catTraits)], by = "species_name")
     }
-    # Bind missingness indicator columns and reorganize the dataframes.  
-    l_dfMissTrait <- lapply(l_dfMissTrait, BindAndOrganize, vars = vars)
+    # Bind missingness indicator columns and reorganize the dataframe. Setting indMiss = F so we can create missingness indicator columns for all columns even if they don't have missing values. This is so we can create a variable of missingness column names more easily later down the line. ***
+    l_dfMissTrait <- lapply(l_dfMissTrait, BindAndOrganize, vars = vars, indMiss = F)
+    # Remove species_name missingness indicator column. ***
+    l_dfMissTrait <- lapply(l_dfMissTrait, function(x) x[, !colnames(x) %in% "species_name_NA"])
     # Make sure l_dfMissTrait and dfLog (the original data) are all ordered alphabetically by species_name.  
     l_dfMissTrait <- lapply(l_dfMissTrait, function(x) x[order(x$species_name), ])
     dfLog <- dfLog[order(dfLog$species_name), ]
@@ -2434,8 +2439,10 @@ MICESimputeMNAR <- function(data, vars, int = 100, mSets = c(5, 10, 40), quantil
     for(c in 1:length(l_dfMissTrait)){
       l_dfMissTrait[[c]] <- merge(l_dfMissTrait[[c]], l_dfMissTraitOrig[[c]][, c("species_name", catTraits)], by = "species_name")
     }
-    # Bind missingness indicator columns and reorganize the dataframe.  
-    l_dfMissTrait <- lapply(l_dfMissTrait, BindAndOrganize, vars = vars)
+    # Bind missingness indicator columns and reorganize the dataframe. Setting indMiss = F so we can create missingness indicator columns for all columns even if they don't have missing values. This is so we can create a variable of missingness column names more easily later down the line. ***
+    l_dfMissTrait <- lapply(l_dfMissTrait, BindAndOrganize, vars = vars, indMiss = F)
+    # Remove species_name missingness indicator column. ***
+    l_dfMissTrait <- lapply(l_dfMissTrait, function(x) x[, !colnames(x) %in% "species_name_NA"])
     # Make sure l_dfMissTrait and dfLog (the original data) are all ordered alphabetically by species_name.  
     l_dfMissTrait <- lapply(l_dfMissTrait, function(x) x[order(x$species_name), ])
     dfLog <- dfLog[order(dfLog$species_name), ]
