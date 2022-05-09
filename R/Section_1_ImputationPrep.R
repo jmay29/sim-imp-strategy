@@ -1,5 +1,13 @@
 # Section 1. Script for preparing data for imputation process including checking distributions and categorical frequencies.
 
+# Required input for this script:
+# dfRaw = Trait dataset with missing values.
+# l_trees = Phylogenetic trees in Newick format (if using phylogenetic imputation).
+
+# Output:
+# CleanedCompleteCaseDataset.csv = Cleaned complete-case dataset.
+# CleanedOriginalCaseDataset.csv = Cleaned original dataset with missing values.
+
 # Acknowledgments. ----
 
 # Trait data used in this study obtained from:
@@ -24,7 +32,7 @@ source("R/Functions/Phylo_Functions.R")
 
 # Read in trait dataset you wish to impute. For an example, you can download the Meiri (2018) dataset available at the DOI mentioned above.
 fileName <- file.choose()
-dfRaw <- read.csv(fileName)
+dfRaw <- fread(fileName, data.table = F)
 # Ensure blanks are NAs.
 dfRaw[dfRaw == ""] <- NA
 # Create vector of column names that contain taxonomic/misc information. For example:
@@ -35,9 +43,13 @@ traits <- setdiff(colnames(dfRaw), taxCols)
 # Complete-case dataset. ---
 # If already created, read in complete-case trait dataset.
 fileName <- file.choose()
-dfCC <- read.csv(fileName)
+dfCC <- fread(fileName, data.table = F)
 # Ensure blanks are NAs.
 dfCC[dfCC == ""] <- NA
+
+# Ensure species name column in each dataframe matches. For example, to ensure species names have underscores and not spaces:
+dfCC$species_name <- gsub(" ", "_", dfCC$species_name)
+dfRaw$species_name <- gsub(" ", "_", dfRaw$species_name)
 
 # OPTIONAL: Complete-case data-set creation. ---
 # If you don't want to allow for any missingness in your complete-case dataset:
@@ -47,15 +59,18 @@ dfCC[dfCC == ""] <- NA
 #CritNumberLoop(data = dfRaw, traitCols = traits, taxCols = "species_name", critNumbers = ns)
 # Once selected, read in the complete-case dataset by uncommenting the following line:
 #fileName <- file.choose()
-#dfCC <- read.csv(fileName)
+#dfCC <- fread(fileName)
 
 # Combine complete-case and original data into list.
 l_dfTraits <- list(Complete = dfCC, Original = dfRaw)
 
 # OPTIONAL: If using phylogenetic imputation, uncomment the following lines.
 # Read in tree. For example:
-#tree <- read.tree("Data/RAxMLTrees/FinalTrees/Squamata_CMOS_ultraTree_finalImp.tre")
-# Match species names in tree to those in datasets. If sample size is less than 100, consider dropping traits here.
+#fileName <- file.choose()
+#tree <- read.tree(fileName)
+# Ensure tip labels match species name columns.
+#tree$tip.label <- gsub(" ", "_", tree$tip.label)
+# Match species names in tree to those in datasets. If sample size is less than 100, consider dropping traits here. 
 #l_matched <- mapply(DropAndMatch, data = l_dfTraits, MoreArgs = list(tree = tree), SIMPLIFY = F) 
 # Extract updated trees (species not found in datasets were dropped).
 #l_trees <- lapply(l_matched, function(x) x[[1]])
