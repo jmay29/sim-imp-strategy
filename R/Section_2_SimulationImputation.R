@@ -66,7 +66,7 @@ dfRaw[dfRaw == ""] <- NA
 # If using phylogenetic imputation, use the following lines. Customize according to your tree file and what you want to call your tree(s).
 # Read in tree(s). For example:
 treeFiles <- file.choose()
-l_trees <- lapply(fileName, read.tree)
+l_trees <- lapply(treeFiles, read.tree)
 # Name l_trees.
 names(l_trees) <- treeFiles
 # Create vector of tree names (used to name error rate files later on). For example:
