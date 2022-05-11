@@ -738,7 +738,7 @@ KNNSimputeMAR <- function(data, raw, vars, int = 100, k = 50, phyImp = F, tree =
     }
     
     # Identify outgroup(s) in trait datasets (this is the species that contains no trait data dfLog). &&
-    outgroup <- dfLog$species_name[apply(dfLog[, traits], 1, function(x) all(is.na(x)))]
+    outgroup <- dfLog$species_name[apply(dfLog[, vars], 1, function(x) all(is.na(x)))]
     # If found in dataframe.. &&
     if(length(outgroup) > 0){
       # Remove outgroup from dataframes.
@@ -977,7 +977,7 @@ KNNSimputeMNAR <- function(data, vars, int = 100, k = 50, quantiles = NULL, dire
       l_evsTrait <- mapply(AppendEigenvectors, data = l_dfMissTrait, vars = vars, MoreArgs = list(tree = tree, predictors = l_predictors), SIMPLIFY = F)
       # Extract list of dfMissEV.
       l_dfMissEV <- sapply(l_evsTrait, function(x) x[[1]])
-      names(l_dfMissEV) <- traits
+      names(l_dfMissEV) <- vars
       # Extract updated list of predictors.
       l_EVPredictors <- sapply(l_evsTrait, function(x) x[[2]])
     }
@@ -1218,7 +1218,7 @@ RFSimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1, ntrees = c(100
       }
       
       # Identify outgroup(s) in trait datasets (this is the species that contains no trait data dfLog). &&
-      outgroup <- dfLog$species_name[apply(dfLog[, traits], 1, function(x) all(is.na(x)))]
+      outgroup <- dfLog$species_name[apply(dfLog[, vars], 1, function(x) all(is.na(x)))]
       # If found in dataframe.. &&
       if(length(outgroup) > 0){
         # Remove outgroup from dataframes.
@@ -1431,7 +1431,7 @@ RFSimputeMAR <- function(data, raw, vars, int = 100, ntrees = c(100, 1000), phyI
       l_EVPredictors <- l_evs[[2]]
     }
     # Identify outgroup(s) in trait datasets (this is the species that contains no trait data dfLog). &&
-    outgroup <- dfLog$species_name[apply(dfLog[, traits], 1, function(x) all(is.na(x)))]
+    outgroup <- dfLog$species_name[apply(dfLog[, vars], 1, function(x) all(is.na(x)))]
     # If found in dataframe.. &&
     if(length(outgroup) > 0){
       # Remove outgroup from dataframes.
@@ -1674,7 +1674,7 @@ RFSimputeMNAR <- function(data, vars, int = 100, ntrees = c(100, 1000), quantile
       l_evsTrait <- mapply(AppendEigenvectors, data = l_dfMissTrait, vars = vars, MoreArgs = list(tree = tree, predictors = l_predictors), SIMPLIFY = F)
       # Extract list of dfMissEV.
       l_dfMissEV <- sapply(l_evsTrait, function(x) x[[1]])
-      names(l_dfMissEV) <- traits
+      names(l_dfMissEV) <- vars
       # Extract updated list of predictors.
       l_EVPredictors <- sapply(l_evsTrait, function(x) x[[2]])
     }
@@ -1939,7 +1939,7 @@ MICESimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1, mSets = c(5,
         }
       }
       # Identify outgroup(s) in trait datasets (this is the species that contains no trait data dfLog). &&
-      outgroup <- dfLog$species_name[apply(dfLog[, traits], 1, function(x) all(is.na(x)))]
+      outgroup <- dfLog$species_name[apply(dfLog[, vars], 1, function(x) all(is.na(x)))]
       # If found in dataframe.. &&
       if(length(outgroup) > 0){
         # Remove outgroup from dataframes.
@@ -2458,10 +2458,10 @@ MICESimputeMNAR <- function(data, vars, int = 100, mSets = c(5, 10, 40), quantil
       l_evsTrait <- mapply(AppendEigenvectors, data = l_dfMissTrait, vars = vars, MoreArgs = list(tree = tree, predictors = l_predictors), SIMPLIFY = F)
       # Extract list of dfMissEV.  
       l_dfMissEV <- sapply(l_evsTrait, function(x) x[[1]])
-      names(l_dfMissEV) <- traits
+      names(l_dfMissEV) <- vars
       # Extract updated list of predictors.
       l_EVPredictors <- sapply(l_evsTrait, function(x) x[[2]])
-      names(l_EVPredictors) <- traits
+      names(l_EVPredictors) <- vars
     }
     # Outgroup removal. ---   
     # Identify outgroup(s) in trait datasets (this is the species that contains no trait data dfLog).   
