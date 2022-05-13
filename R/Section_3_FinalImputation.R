@@ -58,16 +58,16 @@ source("R/Functions/Simpute_Functions.R")
 # Set the seed.
 set.seed(547)
 
-# Read in cleaned complete-case trait dataset.
-fileName <- file.choose()
-dfCC <- fread(fileName, data.table = F)
-# Ensure blanks are NAs.
-dfCC[dfCC == ""] <- NA
 # Read in the cleaned original trait dataset.
 fileName <- file.choose()
 dfRaw <- fread(fileName, data.table = F)
 # Ensure blanks are NAs.
 dfRaw[dfRaw == ""] <- NA
+# Read in cleaned complete-case trait dataset.
+fileName <- file.choose()
+dfCC <- fread(fileName, data.table = F)
+# Ensure blanks are NAs.
+dfCC[dfCC == ""] <- NA
 
 # Variable assignment. ---
 # Assign order name.
