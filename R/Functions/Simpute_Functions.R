@@ -263,11 +263,15 @@ MeanModeSimputeMAR <- function(data, raw, vars, int = 100) {
   
   # Subset to sample sizes for traits that could be simulated MAR.
   l_MARn <- l_sampleSizes[names(l_sampleSizes) %in% traitsMAR]
+  # Order l_MARn by avgMiss.
+  l_MARn <- l_MARn[names(unlist(avgMiss))]
   # Calculate the average number of NAs introduced for each trait.
   avgNAs <- mapply(function(x, y) x * y, y = l_MARn, x = avgMiss)
+  # Rename according to l_MARn.
+  names(avgNAs) <- names(l_MARn)
   
   # Create list to hold the results.
-  l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, traitsNotSimulated = traitsMCAR, traitsMAR = traitsMAR, MARfinalModels = l_MARfinalModels, reps = int, missingData = l_dfMiss, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_dfImp, errorRates = l_Error)
+  l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, traitsNotSimulated = traitsMCAR, traitsMAR = traitsMAR, MARfinalModels = l_MARfinalModels, reps = int, missingness = l_l_missingness, missingData = l_dfMiss, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_dfImp, errorRates = l_Error)
   # Return l_results.
   return(l_results)
   
@@ -417,7 +421,7 @@ MeanModeSimputeMNAR <- function(data, vars, int = 100, quantiles = NULL, directi
   avgNAs <- mapply(function(x, y) x * y, y = l_sampleSizes, x = avgMiss)
   
   # Create list to hold the results.
-  l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, reps = int, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_dfImp, errorRates = l_Error)
+  l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, reps = int, missingData = l_dfMissOrig, missingness = l_l_missingness, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_dfImp, errorRates = l_Error)
   # Return l_results.
   return(l_results)
   
@@ -825,14 +829,16 @@ KNNSimputeMAR <- function(data, raw, vars, int = 100, k = 50, phyImp = F, tree =
   l_MARn <- l_sampleSizes[names(l_sampleSizes) %in% traitsMAR]
   # Calculate the average number of NAs introduced for each trait.
   avgNAs <- mapply(function(x, y) x * y, y = l_MARn, x = avgMiss)
+  # Rename according to l_MARn.
+  names(avgNAs) <- names(l_MARn)
   
   # If phylogenetic imputation was selected..
   if(phyImp == T) { 
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, sampleSizes = l_sampleSizes, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, k = k, missingness = missingness, reps = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, sampleSizes = l_sampleSizes, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, k = k, missingness = l_l_missingness, reps = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   } else if(phyImp == F){
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, sampleSizes = l_sampleSizes, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, k = k, missingness = missingness, reps = int, predictors = l_predictors, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, sampleSizes = l_sampleSizes, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, k = k, missingness = l_l_missingness, reps = int, predictors = l_predictors, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   }
   # Return results.  
   return(l_results)
@@ -1100,10 +1106,10 @@ KNNSimputeMNAR <- function(data, vars, int = 100, k = 50, quantiles = NULL, dire
   # If phylogenetic imputation was selected..     
   if(phyImp == T) { 
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, k = k, missingness = missingness, reps = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_l_dfMissTraitOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, k = k, missingness = l_l_missingness, reps = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_l_dfMissTraitOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   } else if(phyImp == F){
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, k = k, missingness = missingness, reps = int, predictors = l_predictors, missingData = l_l_dfMissTraitOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, k = k, missingness = l_l_missingness, reps = int, predictors = l_predictors, missingData = l_l_dfMissTraitOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   }
   # Return results.
   return(l_results)
@@ -1521,14 +1527,16 @@ RFSimputeMAR <- function(data, raw, vars, int = 100, ntrees = c(100, 1000), phyI
   l_MARn <- l_sampleSizes[names(l_sampleSizes) %in% traitsMAR]
   # Calculate the average number of NAs introduced for each trait. &&
   avgNAs <- mapply(function(x, y) x * y, y = l_MARn, x = avgMiss)
+  # Rename according to l_MARn.
+  names(avgNAs) <- names(l_MARn)
   
   # If phylogenetic imputation was selected..    
   if(phyImp == T) { 
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, integer = intTraits, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, ntrees = ntrees, missingness = missingness, reps = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, integer = intTraits, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, ntrees = ntrees, missingness = l_l_missingness, reps = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   } else if(phyImp == F){
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, integer = intTraits, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, ntrees = ntrees, missingness = missingness, reps = int, predictors = l_predictors, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, integer = intTraits, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, ntrees = ntrees, missingness = l_l_missingness, reps = int, predictors = l_predictors, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   }
   # Return l_results.  
   return(l_results)
@@ -1801,10 +1809,10 @@ RFSimputeMNAR <- function(data, vars, int = 100, ntrees = c(100, 1000), quantile
   # If phylogenetic imputation was selected..
   if(phyImp == T) { 
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, ntrees = ntrees, missingness = missingness, int = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_l_dfMissTraitOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, ntrees = ntrees, missingness = l_l_missingness, int = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_l_dfMissTraitOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   } else if(phyImp == F){
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, ntrees = ntrees, missingness = missingness, reps = int, predictors = l_predictors, missingData = l_l_dfMissTraitOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, ntrees = ntrees, missingness = l_l_missingness, reps = int, predictors = l_predictors, missingData = l_l_dfMissTraitOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   }
   # Return l_results.
   return(l_results)
@@ -2258,7 +2266,7 @@ MICESimputeMAR <- function(data, raw, vars, int = 100, mSets = c(5, 10, 40), phy
     }
     
     # Append results to ith element of lists.    
-    l_dfMissOrig[[i]] <- dfMiss
+    l_dfMissOrig[[i]] <- dfMissOrig
     l_l_missingness[[i]] <- l_missingness      
     l_l_dfImp[[i]] <- l_dfImp
     l_l_Error[[i]] <- l_Error
@@ -2303,14 +2311,16 @@ MICESimputeMAR <- function(data, raw, vars, int = 100, mSets = c(5, 10, 40), phy
   l_MARn <- l_sampleSizes[names(l_sampleSizes) %in% traitsMAR]
   # Calculate the average number of NAs introduced for each trait.
   avgNAs <- mapply(function(x, y) x * y, y = l_MARn, x = avgMiss)
+  # Rename according to l_MARn.
+  names(avgNAs) <- names(l_MARn)
   
   # If phylogenetic imputation was selected..
   if(phyImp == T) { 
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, integer = intTraits, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, m = mSets, predictorMatrix = matPredictors, missingness = missingness, reps = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_dfMissOrig, eigenTraitData = l_dfMissEV, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, integer = intTraits, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, m = mSets, predictorMatrix = matPredictors, missingness = l_l_missingness, reps = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_dfMissOrig, eigenTraitData = l_dfMissEV, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   } else if(phyImp == F){
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, integer = intTraits, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, m = mSets, predictorMatrix = matPredictors, missingness = missingness, reps = int, predictors = l_predictors, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, rawData = raw, traits = l_traits, numeric = contTraits, categorical = catTraits, integer = intTraits, traitsNotSimulated = traitsMCAR, traitsSimulated = traitsMAR, MARfinalModels = l_MARfinalModels, m = mSets, predictorMatrix = matPredictors, missingness = l_l_missingness, reps = int, predictors = l_predictors, missingData = l_dfMissOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   }
   # Return l_results.  
   return(l_results)
@@ -2666,10 +2676,10 @@ MICESimputeMNAR <- function(data, vars, int = 100, mSets = c(5, 10, 40), quantil
   # If phylogenetic imputation was selected..
   if(phyImp == T) { 
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, m = mSets, predictorMatrix = l_matPredictors, missingness = missingness, reps = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_l_dfMissTraitOrig, eigenTraitData = l_dfMissEV, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, traits = vars, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, m = mSets, predictorMatrix = l_matPredictors, missingness = l_l_missingness, reps = int, predictors = l_EVPredictors, tree = tree, eigenvectors = l_l_evs, missingData = l_l_dfMissTraitOrig, eigenTraitData = l_dfMissEV, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   } else if(phyImp == F){
     # Create list to hold the results.
-    l_results <- list(completeCaseData = data, traits = traits, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, m = mSets, predictorMatrix = matPredictors, missingness = missingness, reps = int, predictors = l_predictors, missingData = l_l_dfMissTraitOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
+    l_results <- list(completeCaseData = data, traits = traits, numeric = contTraits, categorical = catTraits, integer = intTraits, sampleSizes = l_sampleSizes, quantiles = quantiles, directions = directions, absolutes = absolutes, categories = categories, m = mSets, predictorMatrix = matPredictors, missingness = l_l_missingness, reps = int, predictors = l_predictors, missingData = l_l_dfMissTraitOrig, averageMissingness = avgMiss, averageNAs = avgNAs, imputedData = l_l_dfImp, errorRates = l_l_Error)
   }
   # Return l_results.
   return(l_results)
