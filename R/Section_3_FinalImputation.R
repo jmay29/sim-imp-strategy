@@ -69,6 +69,10 @@ dfCC <- fread(fileName, data.table = F)
 # Ensure blanks are NAs.
 dfCC[dfCC == ""] <- NA
 
+# Check dataframes to ensure they only have trait and taxonomy information!
+colnames(dfCC)
+colnames(dfRaw)
+
 # Variable assignment. ---
 # Assign order name.
 order <- "Squamata"
