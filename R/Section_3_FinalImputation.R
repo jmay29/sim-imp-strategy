@@ -250,12 +250,12 @@ bestParams <- c(bestParams, bestParamsNOMAR)
 
 # Here, if you want to proceed with phylogenetic imputation method, uncomment the following lines.
 # Read in the tree you wish to use. For example:
-#ultraTree <- read.tree("Data/RAxMLTrees/FinalTrees/Squamata_CMOS_ultraTree_finalImp.tre")
+ultraTree <- read.tree("Data/RAxMLTrees/FinalTrees/Squamata_CMOS_ultraTree_finalImp.tre")
 # Make sure species names in original dataset and tree match.
-#ultraTree <- drop.tip(phy = ultraTree, tip = ultraTree$tip.label[!ultraTree$tip.label %in% dfRaw$species_name])
+ultraTree <- drop.tip(phy = ultraTree, tip = ultraTree$tip.label[!ultraTree$tip.label %in% dfRaw$species_name])
 # Make sure the species data in dfRaw match the tip labels in ultraTree.
-#dfRaw <- dfRaw[match(ultraTree$tip.label, dfRaw$species_name), ]
-#all.equal(ultraTree$tip.label, dfRaw$species_name)
+dfRaw <- dfRaw[match(ultraTree$tip.label, dfRaw$species_name), ]
+all.equal(ultraTree$tip.label, dfRaw$species_name)
 
 # Let's check the distributions of the data and for class imbalances in categorical data.
 # Descriptive info for numerical data:
