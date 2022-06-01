@@ -8,11 +8,11 @@ source("R/Functions/DataHandling_Functions.R")
 
 # Read in trait dataset you wish to impute.
 fileName <- file.choose()
-dfTraits <- read.csv(fileName)
+dfTraits <- fread(fileName, data.table = F)
 # Ensure blanks are replaced with NAs.
 dfTraits[dfTraits == ""] <- NA
 # Create vector of column names that contain taxonomic/misc information. For example:
-taxCols <- "species_name"
+taxCols <- c("species_name", "species", "order", "family", "genus", "v1")
 # Extract trait names for this taxon (everything other than taxCols). I.e. the traits you want to consider for imputation.
 traits <- setdiff(colnames(dfTraits), taxCols)
 
@@ -40,7 +40,7 @@ for(t in max(dfTraitsCount$trait_count):3){
   print(nrow(dfSubset))
   
   # Append to l_dataframes.
-  index <- grep(t, names(l_dataframes))
+  index <- grep(paste("^", t,"$", sep = ""), names(l_dataframes))
   l_dataframes[[index]] <- dfSubset
   
 }
