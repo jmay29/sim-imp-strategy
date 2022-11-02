@@ -12,7 +12,8 @@ dfTraits <- fread(fileName, data.table = F)
 # Ensure blanks are replaced with NAs.
 dfTraits[dfTraits == ""] <- NA
 # Create vector of column names that contain taxonomic/misc information. For example:
-taxCols <- c("species_name", "species", "order", "family", "genus", "v1")
+colnames(dfTraits)
+taxCols <- c("species_name")
 # Extract trait names for this taxon (everything other than taxCols). I.e. the traits you want to consider for imputation.
 traits <- setdiff(colnames(dfTraits), taxCols)
 
@@ -45,8 +46,9 @@ for(t in max(dfTraitsCount$trait_count):3){
   
 }
 
-# Extract the dataframe you want to use for your "nearly-complete" dataset. For example, if we wanted to keep 5 traits:
-myNC <- which(names(l_dataframes) %in% 5)
+# Extract the dataframe you want to use for your "nearly-complete" dataset. For example, if we wanted to keep 7 traits:
+names(l_dataframes)
+myNC <- which(names(l_dataframes) %in% 7)
 dfNC <- l_dataframes[[myNC]]
 # Write dataframe to file.
 fwrite(dfNC, "NearlyCC.csv")
