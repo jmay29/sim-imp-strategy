@@ -44,7 +44,7 @@ colnames(dfRaw)
 colnames(dfRaw)[1] <- "species_name"
 # Cleaning up column names.
 dfRaw <- CleanColumns(dfRaw)
-# Subset by column name (removing misc column/columns we don't need but should check these in your final datasets prior to imputation e.g. for comments about data quality etc).
+# Subset by column name (removing misc column/columns we don't need but should check these in your final datasets prior to imputation e.g. for comments about data quality etc). For example:
 dfRaw <- subset(dfRaw, select = -c(epithet, genus, valid_reptile_database_february_2018, year_of_description, country_described_from, known_only_from_the_only_type, mass_equation_feldman_et_al_2016_unless_stated, intercept, slope, activity_time_comments, substrate_comments, diet_comments, foraging_mode_comments, family, phylogeny, phylogenetic_data, remarks, references_biology_all_columns_except_m_n_and_o, references_svl_of_unsexed_individuals_neonates_and_hatchlings, references_svl_of_females, references_svl_of_males))
 
 # Complete-case dataset. ---
@@ -158,11 +158,9 @@ names(l_dfOutliers) <- contTraits
 # View(l_dfOutliers$smallest_clutch$Complete)
 
 # Check for class imbalances in the complete-case data.
-catFreqsCC <- lapply(na.omit(l_dfTraits$Complete[, catTraits]), ScreenCategories)
-print(catFreqsCC)
+catFreqsCC <- mapply(ScreenCategories, variable = na.omit(l_dfTraits$Complete[, catTraits]), varName = catTraits)
 # Check for class imbalances in the original data.
-catFreqsO <- lapply(na.omit(l_dfTraits$Original[, catTraits]), ScreenCategories)
-print(catFreqsO)
+catFreqsO <- mapply(ScreenCategories, variable = na.omit(l_dfTraits$Original[, catTraits]), varName = catTraits)
 
 
 # Alternatively, if you decide to remove a trait here, uncomment the following lines and remove in traits the original dataframes and create a new vector of traits for imputation. For example:
@@ -189,10 +187,9 @@ print(catFreqsO)
 #l_dfTraits$Original <- l_dfTraits$Original[!l_dfTraits$Original$insular_endemic == "unknown", ]
 
 # If you remove observations here, it is recommended to run the ScreenCategories function again to ensure classes are balanced.
-catFreqsCC <- lapply(na.omit(l_dfTraits$Complete[, catTraits]), ScreenCategories)
-print(catFreqsCC)
-catFreqsO <- lapply(na.omit(l_dfTraits$Original[, catTraits]), ScreenCategories)
-print(catFreqsO)
+# Check for class imbalances in the complete-case data.
+catFreqsCC <- mapply(ScreenCategories, variable = na.omit(l_dfTraits$Complete[, catTraits]), varName = catTraits)
+catFreqsO <- mapply(ScreenCategories, variable = na.omit(l_dfTraits$Original[, catTraits]), varName = catTraits)
 
 # If any data were removed, write the cleaned data to file for use in imputation simulations.
 #fwrite(l_dfTraits$Complete, "Data/TraitData/CleanedCompleteCaseDataset.csv")
