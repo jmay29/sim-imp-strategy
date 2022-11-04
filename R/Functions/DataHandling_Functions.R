@@ -34,6 +34,25 @@ BreakIntoTypes <- function(data, traitCols) {
   
 }
 
+CleanColumns <- function(data) {
+  
+  # Function for printing column names of a dataframe and cleaning the names using the "janitor" package.
+  # data = dataframe
+  
+  # Print original column names.
+  print("Original column names:")
+  print(colnames(data))
+  # Convert column names of data into snake case (e.g. var_one).
+  dfClean <- janitor::clean_names(data)
+  # Print new column names.
+  print("New column names:")
+  print(colnames(dfClean))
+  
+  # Return dataframe with cleaned names.
+  return(dfClean)
+  
+}
+
 CreateNamedList <- function(listLength, elementNames) {
   
   # Function for creating a named list.
@@ -304,7 +323,7 @@ PasteColNames <- function(df, colNames, string, ...) {
   
 }
 
-ScreenCategories <- function(variable, threshold = 0.10) {
+ScreenCategories <- function(variable, varName, threshold = 0.10) {
   
   # Function for determining whether a variable contains categories with observations below a certain threshold.
   
@@ -321,7 +340,7 @@ ScreenCategories <- function(variable, threshold = 0.10) {
   # Create an empty list to hold categories that meet the required threshold.
   goodCat <- vector(mode = "numeric")
   
-  print("Results:")
+  print(paste("Results:", varName))
   
   # # For every category...
   for(i in 1:length(proportions)) {
