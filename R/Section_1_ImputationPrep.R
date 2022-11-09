@@ -74,6 +74,9 @@ dfRaw$species_name <- gsub(" ", "_", dfRaw$species_name)
 # Ensure columns in dfRaw match columns in dfCC.
 dfCC <- dfCC[, c(taxCols, traits)]
 dfRaw <- dfRaw[, c(taxCols, traits)]
+# Remove columns without any trait information in dfRaw (after subsetting to candidate traits we want to test).
+rmThese <- apply(dfRaw[, traits], 1, function(x) all(is.na(x)))
+dfRaw <- dfRaw[!rmThese, ]
 
 # NOTE: Check all classes of your traits now. Ensure they are of the correct class that we need (e.g. double or integer for numerical traits/character for categorical traits).
 lapply(dfRaw[, traits], class)
@@ -184,7 +187,7 @@ catFreqsO <- mapply(ScreenCategories, variable = na.omit(l_dfTraits$Original[, c
 
 # At this point, you would remove categories that fall below the indicated threshold (e.g. comprising less than 10% of the data). Just make sure that when you're removing categories, it is in l_dfTraits as these are the datasets we will be working with now.
 # Example:
-#l_dfTraits$Original <- l_dfTraits$Original[!l_dfTraits$Original$insular_endemic == "unknown", ]
+#l_dfTraits$Original <- l_dfTraits$Original[!l_dfTraits$Original$insular_endemic %in% "unknown", ]
 
 # If you remove observations here, it is recommended to run the ScreenCategories function again to ensure classes are balanced.
 # Check for class imbalances in the complete-case data.
