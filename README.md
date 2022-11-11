@@ -1,7 +1,7 @@
-## **Code for: A real data-based simulation procedure to select an imputation strategy for mixed-type trait data.**
+## **Code for: A real data-based simulation strategy to select an imputation method for mixed-type trait data.**
 
 ### **Description**
-This project entails a real data-based simulation study that compares the performance of imputation methods using a mixed-type trait dataset. Missing completely at random (MCAR), missing at random (MAR), and missing not at random (MNAR) scenarios were simulated. The accuracy of different imputation methods were evaluated with and without phylogeny in the form of gene trees.
+This project entails a real data-based simulation study that compares the performance of imputation methods using a mixed-type trait dataset. Missing completely at random (MCAR), missing at random (MAR), and missing not at random (MNAR) scenarios were simulated. The accuracy of different imputation methods were evaluated with and without phylogeny in the form of single gene and multigene trees.
 
 ### **Data**
 Trait data for this project were obtained from:
