@@ -55,8 +55,6 @@ source("R/Functions/Phylo_Functions.R")
 source("R/Functions/Simpute_Functions.R")
 
 ### 2. Data loading and variable assignment. ----
-# Set the seed.
-set.seed(547)
 
 # Read in the cleaned original trait dataset.
 fileName <- file.choose()
@@ -68,6 +66,7 @@ fileName <- file.choose()
 dfCC <- fread(fileName, data.table = F)
 # Ensure blanks are NAs.
 dfCC[dfCC == ""] <- NA
+dfCC$V1 <- NULL
 
 # Check dataframes to ensure they only have trait and taxonomy information!
 colnames(dfCC)
@@ -90,6 +89,7 @@ contTraits <- l_traits[[1]]
 catTraits <- l_traits[[2]]
 # Identify integer (count) traits, if any.
 intTraits <- GetTraitNames(data = dfCC[, traits], class = "integer")
+# NOTE: Make sure these are all the correct classes! Fix if not.
 
 # Which missingness patterns were simulated?
 missPatts <- c("MCAR", "MAR", "MNAR")
@@ -97,7 +97,7 @@ missPatts <- c("MCAR", "MAR", "MNAR")
 ### 3. Handling error rate and parameter files. ----
 
 # Error rate file handling. ---
-# Section 2 wrote error files for each trait and imputation method. Now we must read those files into R. I have relocated the error files to a folder called Results/ErrorRates/All/.
+# Section 2 wrote error files for each trait and imputation method. Now we must read those files into R. For example, I have relocated the error files to a folder called Results/ErrorRates/All/.
 # Read in the error rate files as dataframes.
 errorFiles <- list.files(path = "Results/ErrorRates/All/", pattern = "_ErrorRates.csv")
 l_dfErrors <- lapply(paste("Results/ErrorRates/All/", errorFiles, sep = ""), fread, data.table = F)
@@ -203,8 +203,8 @@ l_BEST <- lapply(l_l_winningImp, function(x) names(sort(table(unlist(x)), decrea
 optMethod <- names(sort(table(unlist(l_BEST)), decreasing = T))[1]
 optMethod
 # The best method for MAR (most biologically realistic scenario is)...more drum roll..!:
-optMAR <- l_BEST[[which(names(l_BEST) == "MAR")]]
-optMAR
+#optMAR <- l_BEST[[which(names(l_BEST) == "MAR")]]
+optMAR <- optMethod
 
 # Let's find the parameter values that performed best for our optimal method.
 
@@ -226,7 +226,8 @@ dfParamsOpt <- dfParamsAll[grepl(optMAR, x = dfParamsAll$trait_method) & dfParam
 # Create a trait column.
 dfParamsOpt$trait <- gsub(pattern = paste("_", optMAR, sep = ""), replacement = "", dfParamsOpt$trait_method)
 # Extract parameter values.
-bestParams <- dfParamsOpt$param
+#bestParams <- dfParamsOpt$param
+bestParams <- c(100, 1000, 1000, 1000, 100)
 # Name according to traits.
 names(bestParams) <- dfParamsOpt$trait
 
@@ -239,7 +240,8 @@ dfParamsNOMAR$trait <- gsub(pattern = paste("_", optMAR, sep = ""), replacement 
 # Subset to traitsNOMAR.
 dfParamsNOMAR <- dfParamsNOMAR[dfParamsNOMAR$trait %in% traitsNOMAR, ]
 # Extract parameter values.
-bestParamsNOMAR <- dfParamsNOMAR$param
+#bestParamsNOMAR <- dfParamsNOMAR$param
+bestParamsNOMAR <- c(1000, 100)
 # Name according to traits.
 names(bestParamsNOMAR) <- dfParamsNOMAR$trait
 # Append to bestParams.
@@ -250,8 +252,9 @@ bestParams <- c(bestParams, bestParamsNOMAR)
 
 # Here, if you want to proceed with phylogenetic imputation method, uncomment the following lines.
 # Read in the tree you wish to use. For example:
-ultraTree <- read.tree("Data/RAxMLTrees/FinalTrees/Squamata_CMOS_ultraTree_finalImp.tre")
-# Make sure species names in original dataset and tree match.
+fileName <- choose.files()
+ultraTree <- read.tree(fileName)
+# Make sure species names in original dataset and tree match (NOTE: make sure syntax also matches!)
 ultraTree <- drop.tip(phy = ultraTree, tip = ultraTree$tip.label[!ultraTree$tip.label %in% dfRaw$species_name])
 # Make sure the species data in dfRaw match the tip labels in ultraTree.
 dfRaw <- dfRaw[match(ultraTree$tip.label, dfRaw$species_name), ]
@@ -289,15 +292,25 @@ for(cat in 1:length(catRes)){
   barplot(height = dfCount$Freq, names.arg = dfCount$vector, col = "skyblue", main = paste(names((catRes))[[cat]], sep = " "))
 }
 
+# Final check for class imbalances.
+mapply(ScreenCategories, variable = na.omit(dfRaw[, catTraits]), varName = catTraits)
+# For example, to remove rows based on condition:
+dfRaw <- dfRaw[!(dfRaw$body_shape %in% "eel-like" | dfRaw$body_shape %in% "other"), ] ## Removing these
+dfRaw <- dfRaw[!(dfRaw$envtemp %in% "boreal" | dfRaw$envtemp %in% "deep-water" |  dfRaw$envtemp %in% "high altitude" | dfRaw$envtemp %in% "polar"), ] 
+dfRaw <- dfRaw[!(dfRaw$habitat %in% "bathydemersal" | dfRaw$habitat %in% "bathypelagic" |  dfRaw$habitat %in% "pelagic" | dfRaw$habitat %in% "pelagic-neritic" | dfRaw$habitat %in% "pelagic-oceanic"), ] 
+
 # Selecting predictors. ---
 # Here, we select those traits that have significant correlations to use as predictors for imputation (this will vary for each trait).
+# Double check classes of traits prior to imputation. Also convert categorical traits to factor type.
+dfRaw[, catTraits] <- lapply(dfRaw[, catTraits], as.factor)
 # Apply the SelectPredictors() function to obtain a list of predictors for each trait.
 l_predictors <- SelectPredictors(dfRaw[, traits])
 
+
 # Phylogenetic imputation prep. ---
 # Set phylogenetic imputation to true if proceeding (default is F):
-phyImp <- F
-# If using phylogenetic imputation, uncomment the following lines:
+phyImp <- T
+#If using phylogenetic imputation, set phyImp to TRUE and uncomment the following lines:
 # Append eigenvectors to dfRaw and list of predictors. Each trait will have a corresponding dataframe and list of predictors including the eigenvectors. Note: may take a while depending on size of dataset.
 l_evs <- AppendEigenvectors(data = dfRaw, vars = traits, tree = ultraTree, predictors = l_predictors)
 # Extract list of dataframes (one dataset for each trait with appended eigenvectors).
@@ -306,7 +319,10 @@ l_dfRawEV <- l_evs[[1]]
 l_EVPredictors <- l_evs[[2]]
 
 
+
 ### 6. Final imputation. ----
+
+set.seed(547)
 
 # Replicate dfRaw so we can impute the missing values in a new dataset.
 dfRawImp <- dfRaw
@@ -405,7 +421,7 @@ dfAll <- Reduce(function(...) merge(..., by = "species_name", all = T), l_dfAll)
 ### 7. Plots. ----
 
 # In this section, we are plotting box plots for each continuous trait and bar plots for each categorical trait.
-# Select the traits we want to plot (traits that actually had data imputed in dfRaw).
+# Select the traits we want to plot (traits that actually had data imputed in dfRaw). For example:
 impTraits <- c("activity_time", "smallest_clutch", "largest_clutch", "female_svl")
 
 # For every trait...
