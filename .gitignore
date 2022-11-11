@@ -39,35 +39,3 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
-
-/Tyler
-
-# Data
-/Data/Ch4
-/Data/RAxMLTrees/CCTrees
-/Data/RAxMLTrees/FinalTrees
-/Data/SequenceData
-/Data/TraitData/CandidateDatasets
-/Data/TraitData/CompleteCase
-/Data/TraitData/OriginalTraitDatasets
-
-# R scripts
-/R/Functions/LongVersions
-/R/LongerScripts
-/R/Misc
-/R/VersionsOfScriptsDiffChapters
-
-# Results
-/Results/CC_100
-/Results/ErrorRates/65ers
-/Results/ErrorRates/ReducedEigens
-/Results/ErrorRates/All_Oct7
-/Results/ErrorRates/BackupSept30
-/Results/ErrorRates/PhyloExample
-/Results/ErrorRates/SmallIter
-/Results/ErrorRates/Original
-/Results/ErrorRates/NoPhyloExample
-/Results/FinalImpute
-/Results/Plots
-/Results/TrackingFiles
-/Results/Workspaces
