@@ -89,6 +89,7 @@ AverageErrors <- function(results, data, vars, missLevel = 0.1, method, paramTra
           # Append to repRates.
           repRates[[i]] <- missingCol
         }
+        
         # Convert repRates to dataframe format.
         dfRep <- as.data.frame(repRates)
         # Name the columns.
@@ -993,7 +994,7 @@ ImputeMeanMode <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL){
   return(list(dfImputed, l_Error))
 }
 
-ImputeMICE <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, mSets, matPredictors){
+ImputeMICE <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, mSets, matPredictors, seed){
   
   # Function for imputing missing values using the mice() function in the "MICE" package. Returns a list of error rates (MSE for continuous traits and PFC for categorical traits) for each parameter value tested.
   # Citations: van Buuren S, Groothuis-Oudshoorn K (2011). “mice: Multivariate Imputation by Chained Equations in R.” Journal of Statistical Software, 45(3), 1-67. https://www.jstatsoft.org/v45/i03/.
@@ -1008,6 +1009,7 @@ ImputeMICE <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, mSets, 
   # mSets = vector containing values of m to test (number of multiply imputed dataframes)
   # matPredictors = predictor matrix indicated which traits to use in the imputation process (argument for mice)
   # phyImp = whether data are to be imputed using phylogenetic information
+  # seed = seed number to run MICE in parallel
   
   # Ensure dfMissing is a dataframe.
   dfMissing <- as.data.frame(dfMissing)
@@ -1023,8 +1025,10 @@ ImputeMICE <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, mSets, 
   for(m in 1:length(mSets)) {
     # Take the number of mSets.
     M <- mSets[[m]]
-    # Impute the datasets using M and matPredictors. 
-    imputedMICE <- mice(dfMissing[, c(colnames(matPredictors))], predictorMatrix = matPredictors, m = M, maxit = 10, print = FALSE)
+    # For the argument n.imp.core, we divide M by the number of cores we are using (5). +
+    impCore <- M/5
+    # Impute the datasets using parlmice to run MICE in parallel. # of imputations is equal to n.core * n.imp.core. Using ParlMiceWrapper to deal with bug when calling parlmice from a function. + 
+    imputedMICE <- ParlMiceWrapper(data = dfMissing[, c(colnames(matPredictors))], n.core = 5, n.imp.core = impCore, cluster.seed = seed, maxit = 10, predictorMatrix = matPredictors)
     # Combine the imputed data into one dataframe.
     dfImputed <- CombineMIDataframes(midata = imputedMICE, method = "MICE", m = M, contVars = cont, catVars = cat)
     # Make sure the variables are of the correct type.
@@ -1102,7 +1106,7 @@ ImputeMICE <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, mSets, 
   
 }
 
-ImputeRF <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, ntrees, predictors, phyImp = F, l_dfMissing = NULL){
+ImputeRF <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, ntrees, predictors, phyImp = F, l_dfMissing = NULL, seed){
   # Function for imputing missing values using the missForest() function in the "missForest" package for imputation. Returns a list of error rates (MSE for continuous traits and PFC for categorical traits) for each parameter value tested.
   # Citations: Daniel J. Stekhoven (2013). missForest: Nonparametric Missing Value Imputation using Random Forest. R package version 1.4.
   # Stekhoven D. J., & Buehlmann, P. (2012). MissForest - non-parametric missing value imputation for mixed-type data. Bioinformatics, 28(1), 112-118.
@@ -1117,6 +1121,7 @@ ImputeRF <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, ntrees, p
   # predictors = list of predictors for each trait
   # phyImp = whether data are to be imputed using phylogenetic information
   # l_dfMissing = if phyImp == T, a named list of dataframes with missing values corresponding to each trait
+  # seed = seed to set for using missForest in parallel
   
   # Get the names of the missing columns as we will need these later on.
   missingCols <- colnames(dfMissing)[grep(pattern = "_NA", x = colnames(dfMissing))]
@@ -1155,8 +1160,16 @@ ImputeRF <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, ntrees, p
     for(n in 1:length(ntrees)) {
       # Take the number of ntree.
       N <- ntrees[[n]]
+      # Set the number of cores based on number of variables. +
+      cl <- makeCluster(ncol(dfMissing[, c(trait, preds)]))
+      # Registering a parallel backend so we can parallelize missForest. +
+      registerDoParallel(cl)
+      # Set the ith seed using doRNG because we are running missForest in parallel. +
+      doRNG::registerDoRNG(seed = seed)
       # Impute the dataset (which contains the trait in question and its predictors) using missForest.
-      imputedRF <- missForest(as.data.frame(dfMissing[, c(trait, preds)]), ntree = N)
+      imputedRF <- missForest(as.data.frame(dfMissing[, c(trait, preds)]), ntree = N, parallelize = "variables")
+      # Stop the clusters. +
+      stopCluster(cl)
       # Access the imputed dataframe.
       dfImputedTrait <- imputedRF$ximp
       # Add species_name info back.
@@ -1286,6 +1299,18 @@ NormalizeNegative <- function(variable) {
   
 }
 
+ParlMiceWrapper <- function(data, cluster.seed, n.core, n.imp.core, maxit, predictorMatrix, ...) {
+  
+  # This is a function to call parlmice from within another function. Credit to user JoshuaSimon on https://github.com/amices/mice/issues/189 (January 2022).
+  # predictorMatrix <- predictorMatrix
+  # maxit <- maxit
+  imputedMICE <- parlmiceMOD(data = data, cluster.seed = cluster.seed,
+                             n.core = n.core, n.imp.core = n.imp.core, 
+                             maxit = maxit, predictorMatrix = predictorMatrix)
+  return(imputedMICE)
+}
+
+
 RefineModel <- function(model, data){
   
   # Function for dropping insignificant terms from a glm object.
@@ -1326,6 +1351,14 @@ RefineModel <- function(model, data){
     for(m in 1:length(factorLevels)){
       # Get name of variable.
       FV <- names(factorLevels)[[m]]
+      
+      # If FV is the only covariate (and therefore identical to the covariates variable) (cannot remove any terms because at least one level in FV is significant..
+      if(identical(FV, covariates) == T){
+        print("Cannot refine model! Original model retained.")
+        # Return original model.
+        return(model)
+      }
+      
       # If the variable is binary..
       if(FV %in% binCat) {
         # Identify p-value associated with FV.
@@ -1355,7 +1388,7 @@ RefineModel <- function(model, data){
       }
     }
   }
-
+  
   # If there are any non-significant terms in the model..
   if(any(pVals > 0.05)){
     # Set ALLSIG == F. This is an indicator variable to check that all terms are significant in the glm model. This is set to T when all terms are significant (p < 0.05) and the loop will end.
@@ -1377,27 +1410,41 @@ RefineModel <- function(model, data){
         if(p > 0.05){
           # Update the tempCovariates to exclude the term.
           newCands <- tempCovariates[!tempCovariates %in% covariate]
-          # Create new formula without the term.
-          newForm <- as.formula(paste(response, "~", paste(newCands, collapse = "+")))
-          # Fit a new logistic regression model.
-          newFit <- glm(newForm, data = dfShadow, family = "binomial", na.action = na.omit)
-          # Extract the p-values from the new model.
-          newP <- coef(summary(newFit))[, 4]
-          # Remove the intercept.
-          newP <- newP[-1]
-          # If all the terms in the new model are significant...
-          if(all(newP < 0.05)){
-            # Set ALLSIG == TRUE.
+          # If no more covariates can be removed..
+          if(length(newCands) == 0){
+            print("Cannot refine model! Original model retained.")
             ALLSIG <- TRUE
-            # Return newly fitted model.
-            return(newFit)
           } else {
-            # Update tempCovariates vector to include the most recent set of covariates.
-            tempCovariates <- newCands
+            # Create new formula without the term.
+            newForm <- as.formula(paste(response, "~", paste(newCands, collapse = "+")))
+            # Fit a new logistic regression model.
+            newFit <- glm(newForm, data = dfShadow, family = "binomial", na.action = na.omit)
+            # Extract the p-values from the new model.
+            newP <- coef(summary(newFit))[, 4]
+            # Remove the intercept.
+            newP <- newP[-1]
+            # If all the terms in the new model are significant...
+            if(any(newP < 0.05)){
+              # Set ALLSIG == TRUE.
+              ALLSIG <- TRUE
+              # Return newly fitted model.
+              return(newFit)
+            } else {
+              # Update tempCovariates vector to include the most recent set of covariates.
+              tempCovariates <- newCands
+            }
           }
         } ## if
-      } ## for
+      }
+      ## for
+      if(ALLSIG == F){
+        print("Cannot refine model! Original model retained.")
+        ALLSIG <- TRUE
+      }
     } ## WHILE
+    
+    return(model)
+    
   } else {
     print("No terms to remove!")
     # Return the original model.
@@ -1406,12 +1453,13 @@ RefineModel <- function(model, data){
   
 }
 
+
 SelectPredictors <- function(data) {
   
   # Function for performing regression analyses between dataframe columns, according to data class.
   # data = dataframe
   # cols = column numbers to consider for regression analyses
-
+  
   # Create a list to hold the significant predictors for each response variable (column) in the dataframe.
   l_predictors <- vector(mode = "list", length = ncol(data))
   # Name l_predictors according to the names of the columns.
