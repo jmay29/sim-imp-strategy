@@ -15,10 +15,19 @@ MeanModeSimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1) {
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
-  # Identify integer (count) traits, if any.   
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+  }
+  # Identify integer (count) traits, if any.
   intTraits <- GetTraitNames(data = data[, vars], class = "integer")
-  # Ensure categorical traits are character type for mode imputation, including binary variables because we will be finding most frequent category (mode) value later on.
-  data[, catTraits] <- lapply(data[, catTraits], as.character)
+  
   # Determine original sample size for each trait.
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
   
@@ -122,12 +131,21 @@ MeanModeSimputeMAR <- function(data, raw, vars, int = 100) {
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    raw[, catTraits] <- lapply(raw[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+    raw[, catTraits] <- as.factor(raw[, catTraits])
+  }
   # Identify integer (count) traits, if any.
   intTraits <- GetTraitNames(data = data[, vars], class = "integer")
   
-  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
-  data[, catTraits] <- lapply(data[, catTraits], as.factor)
-  raw[, catTraits] <- lapply(raw[, catTraits], as.factor)
   # Determine original sample size for each trait.
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
   
@@ -140,6 +158,10 @@ MeanModeSimputeMAR <- function(data, raw, vars, int = 100) {
   traitsMCAR <- l_missPatt[[1]]
   # Extract MAR traits.
   traitsMAR <- l_missPatt[[2]]
+  # If traitsMAR is empty (no traits can be simulated MAR)..
+  if(length(traitsMAR) == 0){
+    stop("No traits can be simulated MAR!") 
+  }
   # Extract final MAR models.
   l_MARfinalModels <- l_missPatt[[3]]
   
@@ -289,13 +311,24 @@ MeanModeSimputeMNAR <- function(data, vars, int = 100, quantiles = NULL, directi
   
   # Trait preparation. ---
   # Apply BreakIntoTypes() function to identify which traits are numerical and which are categorical.
-  l_traits <- BreakIntoTypes(data = data, traitCols = vars)
+  l_traits <- BreakIntoTypes(data, vars)
   # Extract numerical traits.
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
-  # Identify integer (count) traits, if any. **
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+  }
+  # Identify integer (count) traits, if any.
   intTraits <- GetTraitNames(data = data[, vars], class = "integer")
+  
   # Determine original sample size for each trait.
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
   
@@ -458,9 +491,17 @@ KNNSimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1, k = 50, phyIm
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
-  # Convert categorical traits to factors.
-  data[, catTraits] <- lapply(data[, catTraits], as.factor)
-  # Determine original sample size for each trait.
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+  }
+  # Determine original sample size for each trait. &&
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
   
   # Predictor selection. ---
@@ -647,8 +688,17 @@ KNNSimputeMAR <- function(data, raw, vars, int = 100, k = 50, phyImp = F, tree =
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
   # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
-  data[, catTraits] <- lapply(data[, catTraits], as.factor)
-  raw[, catTraits] <- lapply(raw[, catTraits], as.factor)
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    raw[, catTraits] <- lapply(raw[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+    raw[, catTraits] <- as.factor(raw[, catTraits])
+  }
   # Determine original sample size for each trait. &&
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
   
@@ -665,6 +715,10 @@ KNNSimputeMAR <- function(data, raw, vars, int = 100, k = 50, phyImp = F, tree =
   traitsMCAR <- l_missPatt[[1]]
   # Extract MAR traits.
   traitsMAR <- l_missPatt[[2]]
+  # If traitsMAR is empty (no traits can be simulated MAR)..
+  if(length(traitsMAR) == 0){
+    stop("No traits can be simulated MAR!") 
+  }
   # Extract final MAR models.
   l_MARfinalModels <- l_missPatt[[3]]
   
@@ -873,16 +927,24 @@ KNNSimputeMNAR <- function(data, vars, int = 100, k = 50, quantiles = NULL, dire
     data <- l_matched[[2]]
   }
   
-  # Trait preparation. ---  
+  # Trait preparation. ---
   # Apply BreakIntoTypes() function to identify which traits are numerical and which are categorical.
   l_traits <- BreakIntoTypes(data, vars)
   # Extract numerical traits.
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
-  # Ensure categorical traits are factor type for model building (data class required for glm function).   
-  data[, catTraits] <- lapply(data[, catTraits], as.factor)
-  # Determine original sample size for each trait.
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+  }
+  # Determine original sample size for each trait. &&
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
   
   # Predictor selection. ---   
@@ -1148,9 +1210,17 @@ RFSimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1, ntrees = c(100
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
-  # Convert categorical traits to factors.
-  data[, catTraits] <- lapply(data[, catTraits], as.factor)
-  # Identify integer (count) traits, if any.   
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+  }
+  # Identify integer (count) traits, if any.
   intTraits <- GetTraitNames(data = data[, vars], class = "integer")
   # Determine original sample size for each trait. &&
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
@@ -1240,10 +1310,10 @@ RFSimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1, ntrees = c(100
       # If phylogenetic imputation was selected..
       if(phyImp == T) {
         # Impute data using eigenvectors.
-        impResult <- ImputeRF(dfTrue = dfLog, dfMissing = dfMiss, cols = vars, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_EVPredictors, phyImp = T, l_dfMissing = l_dfMissEV)
+        impResult <- ImputeRF(dfTrue = dfLog, dfMissing = dfMiss, cols = vars, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_EVPredictors, phyImp = T, l_dfMissing = l_dfMissEV, seed = i)
       } else if(phyImp == F){
         # Impute data only using trait data.
-        impResult <- ImputeRF(dfTrue = dfLog, dfMissing = dfMiss, cols = vars, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_predictors)
+        impResult <- ImputeRF(dfTrue = dfLog, dfMissing = dfMiss, cols = vars, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_predictors, seed = i)
       }
       
       # Result handling. ---  
@@ -1341,11 +1411,20 @@ RFSimputeMAR <- function(data, raw, vars, int = 100, ntrees = c(100, 1000), phyI
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    raw[, catTraits] <- lapply(raw[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+    raw[, catTraits] <- as.factor(raw[, catTraits])
+  }
   # Identify integer (count) traits, if any.
   intTraits <- GetTraitNames(data = data[, vars], class = "integer")
-  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
-  data[, catTraits] <- lapply(data[, catTraits], as.factor)
-  raw[, catTraits] <- lapply(raw[, catTraits], as.factor)
   # Determine original sample size for each trait. &&
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
   
@@ -1362,6 +1441,10 @@ RFSimputeMAR <- function(data, raw, vars, int = 100, ntrees = c(100, 1000), phyI
   traitsMCAR <- l_missPatt[[1]]
   # Extract MAR traits.
   traitsMAR <- l_missPatt[[2]]
+  # If traitsMAR is empty (no traits can be simulated MAR)..
+  if(length(traitsMAR) == 0){
+    stop("No traits can be simulated MAR!") 
+  }
   # Extract final MAR models.
   l_MARfinalModels <- l_missPatt[[3]]
   
@@ -1454,10 +1537,10 @@ RFSimputeMAR <- function(data, raw, vars, int = 100, ntrees = c(100, 1000), phyI
     # If phylogenetic imputation was selected..  
     if(phyImp == T) {
       # Impute data using eigenvectors.
-      impResult <- ImputeRF(dfTrue = dfLog, dfMissing = dfMiss, cols = traitsMAR, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_EVPredictors, phyImp = T, l_dfMissing = l_dfMissEV)
+      impResult <- ImputeRF(dfTrue = dfLog, dfMissing = dfMiss, cols = traitsMAR, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_EVPredictors, phyImp = T, l_dfMissing = l_dfMissEV, seed = i)
     } else if(phyImp == F){
       # Impute data only using trait data.
-      impResult <- ImputeRF(dfTrue = dfLog, dfMissing = dfMiss, cols = traitsMAR, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_predictors)
+      impResult <- ImputeRF(dfTrue = dfLog, dfMissing = dfMiss, cols = traitsMAR, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_predictors, seed = i)
     }
     
     # Result handling. ---  
@@ -1571,17 +1654,25 @@ RFSimputeMNAR <- function(data, vars, int = 100, ntrees = c(100, 1000), quantile
     data <- l_matched[[2]]
   }
   
-  # Trait preparation. ---  
+  # Trait preparation. ---
   # Apply BreakIntoTypes() function to identify which traits are numerical and which are categorical.
   l_traits <- BreakIntoTypes(data, vars)
   # Extract numerical traits.
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
-  # Identify integer (count) traits, if any.   
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+  }
+  # Identify integer (count) traits, if any.
   intTraits <- GetTraitNames(data = data[, vars], class = "integer")
-  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).   
-  data[, catTraits] <- lapply(data[, catTraits], as.factor)
   # Determine original sample size for each trait. &&
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
   
@@ -1705,7 +1796,7 @@ RFSimputeMNAR <- function(data, vars, int = 100, ntrees = c(100, 1000), quantile
     # If phylogenetic imputation was selected..  
     if(phyImp == T) {
       # Impute data using eigenvectors.
-      impResult <- ImputeRF(dfTrue = dfLog, dfMissing = l_dfMissEV[[1]], cols = vars, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_EVPredictors, phyImp = T, l_dfMissing = l_dfMissEV)
+      impResult <- ImputeRF(dfTrue = dfLog, dfMissing = l_dfMissEV[[1]], cols = vars, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_EVPredictors, phyImp = T, l_dfMissing = l_dfMissEV, seed = i)
       # Result handling. ---  
       # Extract l_dfImp.
       l_dfImp <- impResult[[1]]
@@ -1713,7 +1804,7 @@ RFSimputeMNAR <- function(data, vars, int = 100, ntrees = c(100, 1000), quantile
       l_Error <- impResult[[2]]
     } else if(phyImp == F){
       # Impute data only using trait data.
-      l_impResult <- mapply(ImputeRF, dfMissing = l_dfMissTrait, cols = vars, MoreArgs = list(dfTrue = dfLog, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_predictors), SIMPLIFY = F)
+      l_impResult <- mapply(ImputeRF, dfMissing = l_dfMissTrait, cols = vars, MoreArgs = list(dfTrue = dfLog, cont = contTraits, cat = catTraits, inter = intTraits, ntrees = c(100, 1000), predictors = l_predictors, seed = i), SIMPLIFY = F)
       # Since now we have a list of impResult, create new lists to hold the imputed dataframes and error rates.  
       l_ImpTrait <- lapply(l_impResult, function(x) x[[1]])
       l_Error <- sapply(l_impResult, function(x) x[[2]])
@@ -1851,8 +1942,16 @@ MICESimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1, mSets = c(5,
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
-  # Convert categorical traits to factors.
-  data[, catTraits] <- lapply(data[, catTraits], as.factor)
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+  }
   # Identify integer (count) traits, if any.   
   intTraits <- GetTraitNames(data = data[, vars], class = "integer")
   # Determine original sample size for each trait. &&
@@ -1976,13 +2075,13 @@ MICESimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1, mSets = c(5,
       # If phylogenetic imputation wasn't selected..
       if(phyImp == F) {
         # Impute data only using trait data.
-        impResult <- ImputeMICE(dfTrue = dfLog, dfMissing = dfMiss, cols = vars, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), matPredictors = matPredictors)
+        impResult <- ImputeMICE(dfTrue = dfLog, dfMissing = dfMiss, cols = vars, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), matPredictors = matPredictors, seed = i)
         # If phylogenetic imputation was selected..
       } else if(phyImp == T){
         # Bind back the missing columns.   
         dfMissEV <- bind_shadow(dfMissEV, only_miss = T)
         # Impute data using eigenvectors.
-        impResult <- ImputeMICE(dfTrue = dfLog, dfMissing = dfMissEV, cols = vars, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), matPredictors = matPredictors)
+        impResult <- ImputeMICE(dfTrue = dfLog, dfMissing = dfMissEV, cols = vars, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), matPredictors = matPredictors, seed = i)
       }
       
       # Result handling. ---
@@ -2084,11 +2183,20 @@ MICESimputeMAR <- function(data, raw, vars, int = 100, mSets = c(5, 10, 40), phy
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    raw[, catTraits] <- lapply(raw[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+    raw[, catTraits] <- as.factor(raw[, catTraits])
+  }
   # Identify integer (count) traits, if any.   
   intTraits <- GetTraitNames(data = data[, vars], class = "integer")
-  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).  
-  data[, catTraits] <- lapply(data[, catTraits], as.factor)
-  raw[, catTraits] <- lapply(raw[, catTraits], as.factor)
   # Determine original sample size for each trait. &&
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
   
@@ -2105,6 +2213,10 @@ MICESimputeMAR <- function(data, raw, vars, int = 100, mSets = c(5, 10, 40), phy
   traitsMCAR <- l_missPatt[[1]]
   # Extract MAR traits.
   traitsMAR <- l_missPatt[[2]]
+  # If traitsMAR is empty (no traits can be simulated MAR)..
+  if(length(traitsMAR) == 0){
+    stop("No traits can be simulated MAR!") 
+  }
   # Extract final MAR models.
   l_MARfinalModels <- l_missPatt[[3]]
   
@@ -2233,13 +2345,13 @@ MICESimputeMAR <- function(data, raw, vars, int = 100, mSets = c(5, 10, 40), phy
     # If phylogenetic imputation wasn't selected..  
     if(phyImp == F) {
       # Impute data only using trait data.
-      impResult <- ImputeMICE(dfTrue = dfLog, dfMissing = dfMiss, cols = traitsMAR, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), matPredictors = matPredictors)
+      impResult <- ImputeMICE(dfTrue = dfLog, dfMissing = dfMiss, cols = traitsMAR, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), matPredictors = matPredictors, seed = i)
       # If phylogenetic imputation was selected..
     } else if(phyImp == T){
       # Bind back the missing columns.   
       dfMissEV <- bind_shadow(dfMissEV, only_miss = T)
       # Impute data using eigenvectors.
-      impResult <- ImputeMICE(dfTrue = dfLog, dfMissing = dfMissEV, cols = traitsMAR, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), matPredictors = matPredictors)
+      impResult <- ImputeMICE(dfTrue = dfLog, dfMissing = dfMissEV, cols = traitsMAR, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), matPredictors = matPredictors, seed = i)
     }
     # Result handling. ---  
     # Extract l_dfImp.  
@@ -2356,17 +2468,25 @@ MICESimputeMNAR <- function(data, vars, int = 100, mSets = c(5, 10, 40), quantil
     data <- l_matched[[2]]
   }
   
-  # Trait preparation. ---  
+  # Trait preparation. ---
   # Apply BreakIntoTypes() function to identify which traits are numerical and which are categorical.
   l_traits <- BreakIntoTypes(data, vars)
   # Extract numerical traits.
   contTraits <- l_traits[[1]]
   # Extract categorical traits.
   catTraits <- l_traits[[2]]
+  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).
+  # If there is more than one categorical trait..
+  if(length(catTraits) > 1){
+    # Use lapply to convert categorical traits to factor class.
+    data[, catTraits] <- lapply(data[, catTraits], as.factor)
+    # If there is only one categorical trait..
+  } else if(length(catTraits) == 1) {
+    # Convert single trait to factor class.
+    data[, catTraits] <- as.factor(data[, catTraits])
+  }
   # Identify integer (count) traits, if any.   
   intTraits <- GetTraitNames(data = data[, vars], class = "integer")
-  # Ensure categorical traits are factor type for logistic regression model building (data class required for glm function).   
-  data[, catTraits] <- lapply(data[, catTraits], as.factor)
   # Determine original sample size for each trait. &&
   l_sampleSizes <- lapply(data[, vars], function(x) length(na.omit(x)))
   
@@ -2541,7 +2661,7 @@ MICESimputeMNAR <- function(data, vars, int = 100, mSets = c(5, 10, 40), quantil
     # If phylogenetic imputation was selected..  
     if(phyImp == T) {
       # Impute data using eigenvectors.
-      l_impResult <- mapply(ImputeMICE, dfMissing = l_dfMissEV, matPredictors = l_matPredictors, cols = vars, MoreArgs = list(dfTrue = dfLog, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40)), SIMPLIFY = F)
+      l_impResult <- mapply(ImputeMICE, dfMissing = l_dfMissEV, matPredictors = l_matPredictors, cols = vars, MoreArgs = list(dfTrue = dfLog, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), seed = i), SIMPLIFY = F)
       # Since now we have a list of impResult, create new lists to hold the imputed dataframes and error rates.
       l_ImpTrait <- lapply(l_impResult, function(x) x[[1]])
       l_Error <- lapply(l_impResult, function(x) x[[2]])
@@ -2579,7 +2699,7 @@ MICESimputeMNAR <- function(data, vars, int = 100, mSets = c(5, 10, 40), quantil
       
     } else if(phyImp == F){
       # Impute data only using trait data.
-      l_impResult <- mapply(ImputeMICE, dfMissing = l_dfMissTrait, cols = vars, MoreArgs = list(dfTrue = dfLog, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), matPredictors = matPredictors), SIMPLIFY = F)
+      l_impResult <- mapply(ImputeMICE, dfMissing = l_dfMissTrait, cols = vars, MoreArgs = list(dfTrue = dfLog, cont = contTraits, cat = catTraits, inter = intTraits, mSets = c(5, 10, 40), matPredictors = matPredictors, seed = i), SIMPLIFY = F)
       # Since now we have a list of impResult, create new lists to hold the imputed dataframes and error rates.  
       l_ImpTrait <- lapply(l_impResult, function(x) x[[1]])
       l_Error <- lapply(l_impResult, function(x) x[[2]])
