@@ -10,6 +10,8 @@ PlotBar <- function(df, missLevel, traitType, title, upperThresh) {
   # title = to include in title of plot
   # upperThresh = upper range of y-axis
   
+  # TODO: Automate title creation according to method/gene combo.
+  
   # Subset row according to missingness level.
   dfSub <- df[missLevel, ]
   # Remove SE columns for now.
@@ -51,14 +53,16 @@ PlotBar <- function(df, missLevel, traitType, title, upperThresh) {
     
     # Change MeanMode to Mean.
     dfPlot[dfPlot == "MeanMode"] <- "Mean"
+    # Change Multigene to MG to shorten label length. ^
+    dfPlot$method <- gsub("Multigene", "MG", dfPlot$method)
     # Convert group to factor variable to ensure correct plotting order. 
     dfPlot$group <- factor(dfPlot$group, levels = c("Mean", "KNN", "RF", "MICE"))
     # Create a vector to hold colours for grouping var.
     cols <- c("#F0E442", "#56B4E9", "#009E73", "#CC79A7")
-    # Create a vector to hold colours for SE bars (need one for each error rate).
-    SEcolours <- c(rep("#F0E442", 4), "#56B4E9", rep("#009E73", 4), rep("#CC79A7", 4))
-    # Fix order so trait-only methods are first.
-    methodOrd <- c("Mean", "KNN", "KNN_COI", "KNN_CMOS", "KNN_RAG1", "RF", "RF_COI", "RF_CMOS", "RF_RAG1", "MICE", "MICE_COI", "MICE_CMOS", "MICE_RAG1")
+    # Create a vector to hold colours for SE bars (need one for each error rate). ^
+    SEcolours <- c(rep("#F0E442", 5), "#56B4E9", rep("#009E73", 5), rep("#CC79A7", 5))
+    # Fix order so trait-only methods are first. ^
+    methodOrd <- c("Mean", "KNN", "KNN_COI", "KNN_CMOS", "KNN_RAG1", "KNN_MG", "RF", "RF_COI", "RF_CMOS", "RF_RAG1", "RF_MG", "MICE", "MICE_COI", "MICE_CMOS", "MICE_RAG1", "MICE_MG")
     # Fix names as gg plots alphabetically within group.
     dfPlot <- dfPlot[match(methodOrd, dfPlot$method),]
     # Fix order according to factor.
@@ -70,7 +74,7 @@ PlotBar <- function(df, missLevel, traitType, title, upperThresh) {
     
     theme_set(theme_classic())
     
-    tiff(plotTitle, units="in", width=12, height=14, res=600)
+    tiff(plotTitle, units="in", width=4, height=5, res=4000)
     
     plot <- ggplot(data = dfPlot, aes(method, y = error)) +
       geom_col_pattern(
@@ -81,8 +85,7 @@ PlotBar <- function(df, missLevel, traitType, title, upperThresh) {
         pattern_spacing = 0.01,
         position = position_dodge2(preserve = 'single')) +
       #geom_bar(stat = "identity") +
-      scale_pattern_manual(values = c("none", "stripe", "circle", "crosshatch"), 
-                           guide = guide_legend(title = "Legend", override.aes = list(fill = cols))) +
+      scale_pattern_manual(values = c("none", "stripe", "circle", "crosshatch")) +
       scale_colour_manual(values = pattCols) +
       scale_fill_manual(values = cols) + ylab("") + xlab("") + 
       geom_errorbar(aes(ymin = error - SE, ymax = error + SE, width = .2)) +
@@ -90,7 +93,7 @@ PlotBar <- function(df, missLevel, traitType, title, upperThresh) {
       labs(title = plotTitle,
            subtitle = "",
            caption = "") +
-      theme(axis.text.y = element_text(vjust = 0.6, size = 32, face = "bold"), axis.text.x = element_text(vjust = 0.6, size = 28, angle = 65, face = "bold"))
+      theme(legend.position = "none", axis.text.y = element_text(vjust = 0.6, size = 14, face = "bold"), axis.text.x = element_text(vjust = 1, hjust = 1, size = 10, angle = 60, face = "bold"))
     
     print(plot)
     
@@ -98,16 +101,18 @@ PlotBar <- function(df, missLevel, traitType, title, upperThresh) {
     
     # Change MeanMode to Mode.
     dfPlot[dfPlot == "MeanMode"] <- "Mode"
+    # Change Multigene to MG to shorten label length. ^
+    dfPlot$method <- gsub("Multigene", "MG", dfPlot$method)
     # Convert to factor so we can plot the error rates according to colour.
     dfPlot$method <- factor(dfPlot$method, levels = dfPlot$method[order(dfPlot$group)])
     # Convert group to factor variable to ensure correct plotting order. 
     dfPlot$group <- factor(dfPlot$group, levels = c("Mode", "KNN", "RF", "MICE"))
     # Create a vector to hold colours for grouping var.
     cols <- c("#F0E442", "#56B4E9", "#009E73", "#CC79A7")
-    # Create a vector to hold colours for SE bars (need one for each error rate).
-    SEcolours <- c(rep("#F0E442", 4), "#56B4E9", rep("#009E73", 4), rep("#CC79A7", 4))
+    # Create a vector to hold colours for SE bars (need one for each error rate). ^
+    SEcolours <- c(rep("#F0E442", 5), "#56B4E9", rep("#009E73", 5), rep("#CC79A7", 5))
     # Fix order so trait-only methods are first.
-    methodOrd <- c("Mode", "KNN", "KNN_COI", "KNN_CMOS", "KNN_RAG1", "RF", "RF_COI", "RF_CMOS", "RF_RAG1", "MICE", "MICE_COI", "MICE_CMOS", "MICE_RAG1")
+    methodOrd <- c("Mode", "KNN", "KNN_COI", "KNN_CMOS", "KNN_RAG1", "KNN_MG", "RF", "RF_COI", "RF_CMOS", "RF_RAG1", "RF_MG", "MICE", "MICE_COI", "MICE_CMOS", "MICE_RAG1", "MICE_MG")
     # Order dfPlot by methodOrd.
     dfPlot <- dfPlot[match(methodOrd, dfPlot$method),]
     # Fix order according to factor.
@@ -118,7 +123,7 @@ PlotBar <- function(df, missLevel, traitType, title, upperThresh) {
     
     theme_set(theme_classic())
     
-    tiff(plotTitle, units="in", width=12, height=14, res=600)
+    tiff(plotTitle, units="in", width=4, height=5, res=4000)
     
     plot <- ggplot(data = dfPlot, aes(method, y = error)) +
       geom_col_pattern(
@@ -129,8 +134,7 @@ PlotBar <- function(df, missLevel, traitType, title, upperThresh) {
         pattern_spacing = 0.01,
         position = position_dodge2(preserve = 'single')) +
       #geom_bar(stat = "identity") +
-      scale_pattern_manual(values = c("none", "stripe", "circle", "crosshatch"), 
-                           guide = guide_legend(title = "Legend", override.aes = list(fill = cols))) +
+      scale_pattern_manual(values = c("none", "stripe", "circle", "crosshatch")) +
       scale_colour_manual(values = pattCols) +
       scale_fill_manual(values = cols) + ylab("") + xlab("") + 
       geom_errorbar(aes(ymin = error - SE, ymax = error + SE, width = .2)) +
@@ -138,7 +142,7 @@ PlotBar <- function(df, missLevel, traitType, title, upperThresh) {
       labs(title = plotTitle,
            subtitle = "",
            caption = "") +
-      theme(axis.text.y = element_text(vjust = 0.6, size = 32, face = "bold"), axis.text.x = element_text(vjust = 0.6, size = 28, angle = 65, face = "bold"))
+      theme(legend.position = "none", axis.text.y = element_text(vjust = 0.6, size = 14, face = "bold"), axis.text.x = element_text(vjust = 1, hjust = 1, size = 10, angle = 60, face = "bold"))
     
     print(plot)
     
@@ -213,10 +217,11 @@ PlotLine <- function(df, traitType, plotType, title, minError, maxError) {
         add_trace(y = ~KNN, name = 'KNN', error_y = ~list(array = KNN_SE, color = '#56B4E9', opacity=0.75), mode = 'lines+markers', symbol = 'none', marker = list(size = 30, color = c('#56B4E9')), line = list(color = c('#56B4E9'), width = 9)) %>%
         add_trace(y = ~RF, name = 'RF', error_y = ~list(array = RF_SE, color = '#009E73', opacity=0.75), mode = 'lines+markers', symbol = 'circle', marker = list(size = 20, color = c('#009E73')), line = list(color = c('#009E73'), width = 9)) %>%
         add_trace(y = ~MICE, name = 'MICE_PMM', error_y = ~list(array = MICE_SE, color = '#CC79A7', opacity=0.75), mode = 'lines+markers', symbol = 'square', marker = list(size = 18, color = c('#CC79A7')), line = list(color = c('#CC79A7'), width = 9)) %>%
-        layout(title = paste(title, "Method comparison"), xaxis = list(title = "", ticks = 'outside', tickfont = list(size = 24), showgrid = T, titlefont = list(size = 31))) %>%
-        layout(yaxis = list(titlefont = list(size = 31), tickfont = list(size = 24), showgrid = T, title = "")) %>%
+        layout(title = paste(title, "Method comparison"), xaxis = list(title = "", ticks = 'outside', tickfont = list(size = 37, family = "Arial"), showgrid = T, titlefont = list(size = 31))) %>%
+        layout(yaxis = list(titlefont = list(size = 31), tickfont = list(size = 35, family = "Arial"), showgrid = T, title = "")) %>%
         layout(plot_bgcolor='white') %>%
-        layout(showlegend = TRUE, legend = list(font = list(size = 24)), itemsizing='trace')
+        layout(showlegend = F)  ## No legend for now.
+        #%>% layout(showlegend = TRUE, legend = list(font = list(size = 24)), itemsizing='trace')
       
       export(plot, file = paste(title, "Method comparison", ".png", sep = ""))
       
@@ -273,10 +278,11 @@ PlotLine <- function(df, traitType, plotType, title, minError, maxError) {
         add_trace(y = ~KNN, name = 'KNN', error_y = ~list(array = KNN_SE, color = '#56B4E9', opacity=0.75), mode = 'lines+markers', symbol = 'none', marker = list(size = 30, color = c('#56B4E9')), line = list(color = c('#56B4E9'), width = 9)) %>%
         add_trace(y = ~RF, name = 'RF', error_y = ~list(array = RF_SE, color = '#009E73', opacity=0.75), mode = 'lines+markers', symbol = 'circle', marker = list(size = 20, color = c('#009E73')), line = list(color = c('#009E73'), width = 9)) %>%
         add_trace(y = ~MICE, name = 'MICE_LR', error_y = ~list(array = MICE_SE, color = '#CC79A7', opacity=0.75), mode = 'lines+markers', symbol = 'square', marker = list(size = 18, color = c('#CC79A7')), line = list(color = c('#CC79A7'), width = 9)) %>%
-        layout(title = paste(title, "Method comparison"), xaxis = list(title = "", ticks = 'outside', tickfont = list(size = 24), showgrid = T, titlefont = list(size = 31))) %>%
-        layout(yaxis = list(titlefont = list(size = 31), tickfont = list(size = 24), showgrid = T, title = "")) %>%
+        layout(title = paste(title, "Method comparison"), xaxis = list(title = "", ticks = 'outside', tickfont = list(size = 37, family = "Arial"), showgrid = T, titlefont = list(size = 31))) %>%
+        layout(yaxis = list(titlefont = list(size = 31), tickfont = list(size = 35, family = "Arial"), showgrid = T, title = "")) %>%
         layout(plot_bgcolor='white') %>%
-        layout(showlegend = TRUE, legend = list(font = list(size = 24)), itemsizing='trace')
+        layout(showlegend = F)
+        #layout(showlegend = TRUE, legend = list(font = list(size = 24)), itemsizing='trace')
       
       export(plot, file = paste(title, "Method comparison", ".png", sep = ""))
       
@@ -292,7 +298,7 @@ PlotPhySig <- function(df, title) {
   # df = dataframe containing phylogenetic signal measures. Must also contain a "gene" and "trait" column.
   
   # Create a vector to hold colours for grouping var (gene).
-  cols <- c("#023FA5", "#7D87B9", "#E2E2E2")
+  cols <- c("#E2E2E2", "#BEC1D4", "#7D87B9", "#023FA5")
   
   # Set the theme.
   theme_set(theme_light())
