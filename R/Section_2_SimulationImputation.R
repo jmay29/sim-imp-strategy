@@ -55,7 +55,6 @@ source("R/Functions/DataHandling_Functions.R")
 source("R/Functions/Imputation_Functions.R")
 source("R/Functions/Phylo_Functions.R")
 source("R/Functions/Simpute_Functions.R")
-source("R/Functions/ParlMICEWrapper.R")
 
 ### 2. Data loading and variable assignment. ----
 
