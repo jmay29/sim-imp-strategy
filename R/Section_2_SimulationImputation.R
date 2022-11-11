@@ -14,16 +14,16 @@
 # This script makes use of the following imputation functions:
 
 # kNN() function in the "VIM" package for imputation.
-# Citations: Kowarik A, Templ M (2016). “Imputation with the R Package VIM.” Journal of Statistical Software, 74(7), 1–16. doi: 10.18637/jss.v074.i07.
-# https://cran.r-project.org/web/packages/VIM/VIM.pdf
+# Citations: Kowarik A, Templ M. Imputation with the R Package VIM. J Stat Softw. 2016;74(7):1–16. 
+# Templ M, Kowarik A, Alfons A, de Cillia G, Prantner B, Rannetbauer W. R package “VIM”: Visualization and Imputation of Missing Values [Internet]. 2021. Available from: https://cran.r-project.org/web/packages/VIM/VIM.pdf. R package v. 6.1.0.
 
 # missForest() function in the "missForest" package for imputation.
-# Citations: Daniel J. Stekhoven (2013). missForest: Nonparametric Missing Value Imputation using Random Forest. R package version 1.4.
-# Stekhoven D. J., & Buehlmann, P. (2012). MissForest - non-parametric missing value imputation for mixed-type data. Bioinformatics, 28(1), 112-118.
+# Citations: 40.	Stekhoven DJ. missForest: Nonparametric Missing Value Imputation using Random Forest. 2013.R package v. 1.4.
+# Stekhoven DJ, Bühlmann P. MissForest—non-parametric missing value imputation for mixed-type data. Bioinformatics. 2012 Jan 1;28(1):112–8. 
 
 # mice() function in the "mice" package for imputation.
-# Citations: van Buuren S, Groothuis-Oudshoorn K (2011). “mice: Multivariate Imputation by Chained Equations in R.” Journal of Statistical Software, 45(3), 1-67. https://www.jstatsoft.org/v45/i03/.
-# R package version 3.13.0. https://cran.r-project.org/web/packages/mice/mice.pdf
+# Citations: van Buuren S, Groothuis-Oudshoorn K. MICE: Multivariate Imputation by Chained Equations in R. J Stat Softw. 2011;45(3):1–67. R package v. 3.13.0.
+# https://cran.r-project.org/web/packages/mice/mice.pdf.
 
 ### 1. Load libraries and functions. ----
 
@@ -31,6 +31,12 @@ library(ape)
 library(data.table)
 library(Information)
 library(lmtest)
+library(doParallel)
+library(doRNG)
+library(Information)
+library(lmtest)
+library(matrixStats)
+library(mclust)
 library(matrixStats)
 library(Metrics)
 library(mice)
@@ -49,6 +55,7 @@ source("R/Functions/DataHandling_Functions.R")
 source("R/Functions/Imputation_Functions.R")
 source("R/Functions/Phylo_Functions.R")
 source("R/Functions/Simpute_Functions.R")
+source("R/Functions/ParlMICEWrapper.R")
 
 ### 2. Data loading and variable assignment. ----
 
@@ -65,10 +72,11 @@ dfCC[dfCC == ""] <- NA
 
 # If using phylogenetic imputation, use the following lines. Customize according to your tree file and what you want to call your tree(s).
 # Read in tree(s). For example:
-treeFiles <- file.choose()
+treeFiles <- choose.files()
 l_trees <- lapply(treeFiles, read.tree)
-# Name l_trees.
+# Name l_trees according to file name.
 names(l_trees) <- treeFiles
+treeNames <- names(l_trees)
 # Create vector of tree names (used to name error rate files later on). For example:
 treeNames <- sapply(treeFiles, function(x) word(x, start = 2, sep = "_"))
 
@@ -95,11 +103,12 @@ dfRaw[, speciesCol] <- gsub(" ", "_", dfRaw[, speciesCol])
 # Create an integer for the number of replicates to use for missingness simulations and imputation. Default here is 10 replicates.
 r <- 10
 # If simulating data missing completely at random (MCAR), create an integer for the maximum proportion of missingness to simulate (e.g. 0.4 would include simulations at 0.1, 0.2, 0.3. and 0.4 missingness). Default here is 0.4 missingness.
-ml <- 0.1
+ml <- 0.4
 
 # Missing not at random (MNAR) variable assignment. ---
-# If simulating data missing NOT at random (MNAR), uncomment the following lines:
+# If simulating data missing NOT at random (MNAR), uncomment the following lines and adjust according to your needs:
 # # Make list of quantile thresholds for removing data for each numerical trait (e.g. removing observations below the 10th quantile). Default here is removing data below the 10th quantile.
+# contTraits
 # l_quantiles <- as.list(rep(0.1, length(contTraits)))
 # names(l_quantiles) <- contTraits
 # # Make list of directions (e.g. greater or less than the quantile threshold) for which to introduce NAs for numerical traits. If "less" is chosen, data will be removed below the corresponding quantile. If "greater" is chosen, data will be removed above the corresponding quantile.
@@ -111,6 +120,7 @@ ml <- 0.1
 # # For example, if we want to use absolute values for the latitude trait:
 # l_abs$latitude_centroid_from_roll_et_al_2017 <- T
 # # Make list of categories for which to introduce NAs for categorical traits. For example:
+# catTraits
 # lapply(dfCC[, catTraits], table)
 # l_categories <- list(insular_endemic = "yes", activity_time = "Nocturnal")
 
@@ -121,8 +131,8 @@ l_functions <- mget(lsf.str())
 
 # Set a seed to ensure results can be replicated.
 set.seed(547)
-# Create vector of missingness patterns you wish to simulate.
-missPatts <- c("MAR")
+# Create vector of missingness patterns you wish to simulate. For example, we can simulate missingness MCAR and MAR:
+missPatts <- c("MCAR", "MAR")
 # Create empty list to hold results for each missingness pattern.
 l_l_simputeResults <- CreateNamedList(listLength = length(missPatts), elementNames = names(missPatts))
 
