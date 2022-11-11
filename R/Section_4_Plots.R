@@ -32,6 +32,7 @@ library(pastecs)
 library(phytools)
 library(plotly)
 library(plotrix)
+library(processx)
 library(psych)
 library(rsample)
 library(summarytools)
@@ -46,11 +47,12 @@ source("R/Functions/Plot_Functions.R")
 ### 2. Data loading and variable assignment. ----
 
 # Read in cleaned complete-case trait dataset.
-dfCC <- fread("Data/TraitData/CleanedCompleteCaseDataset.csv", data.table = F)
+dfCC <- fread("Data/TraitData/CompleteCase/NearlyCompleteCaseDataset.csv", data.table = F)
+dfCC$V1 <- NULL # Rm misc column.
 # Ensure blanks are NAs.
 dfCC[dfCC == ""] <- NA
 # Read in the cleaned original trait dataset.
-dfRaw <- fread("Data/TraitData/CleanedOriginalCaseDataset.csv", data.table = F)
+dfRaw <- fread("Data/TraitData/OriginalTraitDatasets/Cleaned_Raw_Lizards.csv", data.table = F)
 # Ensure blanks are NAs.
 dfRaw[dfRaw == ""] <- NA
 
@@ -368,7 +370,7 @@ for(g in 1:length(l_l_sig)){
 
 # Plotting phylogenetic signal. ---
 # Convert grouping variables to factor type. Here, I am also ensuring correct plotting order for the different variables. 
-dfMetrics$gene <- factor(dfMetrics$gene, levels = c("COI", "CMOS", "RAG1"))
+dfMetrics$gene <- factor(dfMetrics$gene, levels = c("COI", "CMOS", "RAG1", "Multigene"))
 # Split dataframe into continuous and categorical dataframes.
 # Continuous:
 dfCont <- dfMetrics[dfMetrics$metric == phyloSignal, ]
@@ -517,7 +519,7 @@ for(m in 1:length(l_dfPlotCont)) {
     # Create title.
     plotTitle <- paste(m, "cont", gene, ".tiff", sep = "")
     # Write to .tiff file.
-    tiff(plotTitle, units = "in", width = 14, height = 8, res = 600)
+    tiff(plotTitle, units = "in", width = 14, height = 8, res = 1000)
     theme_set(theme_light())
     plot <- ggplot(dfGene, aes(x = phylogenetic_signal, y = ratio)) +
       geom_point(aes(shape = method, color = method), size = 20, position = "jitter") +
@@ -525,7 +527,7 @@ for(m in 1:length(l_dfPlotCont)) {
       scale_shape_manual(values=c(17, 15, 16)) +
       labs(title = plotTitle, y = "", x = "") +
       geom_hline(yintercept = 1, color = "gray", size = 2) +
-      theme(axis.text.y = element_text(vjust = 0.6, size = 28, face = "bold"), axis.text.x = element_text(vjust = 0.6, size = 28, face = "bold")) + theme(legend.text = element_text(face = "bold")) + guides(shape = guide_legend(override.aes = list(size = 5))) 
+      theme(axis.text.y = element_text(vjust = 0.6, size = 35, face = "bold"), axis.text.x = element_text(vjust = 0.6, size = 35, face = "bold")) + theme(legend.text = element_text(face = "bold")) + guides(shape = guide_legend(override.aes = list(size = 5))) 
     # Print to tiff.
     print(plot)
     # Turn off dev.
@@ -559,7 +561,7 @@ for(m in 1:length(l_dfPlotCat)) {
     # Create title.
     plotTitle <- paste(m, "cat", gene, ".tiff", sep = "")
     # Write to .tiff file.
-    tiff(plotTitle, units = "in", width = 14, height = 8, res = 600)
+    tiff(plotTitle, units = "in", width = 14, height = 8, res = 1000)
     theme_set(theme_light())
     plot <- ggplot(dfGene, aes(x = phylogenetic_signal, y = ratio)) +
       geom_point(aes(shape = method, color = method), size = 20, position = "jitter") +
@@ -567,10 +569,11 @@ for(m in 1:length(l_dfPlotCat)) {
       scale_shape_manual(values=c(17, 15, 16)) +
       labs(title = plotTitle, y = "", x = "") +
       geom_hline(yintercept = 1, color = "gray", size = 3) +
-      theme(axis.text.y = element_text(vjust = 0.6, size = 28, face = "bold"), axis.text.x = element_text(vjust = 0.6, size = 28, face = "bold")) + theme(legend.text = element_text(face = "bold")) + guides(shape = guide_legend(override.aes = list(size = 5)))
+      theme(axis.text.y = element_text(vjust = 0.6, size = 35, face = "bold"), axis.text.x = element_text(vjust = 0.6, size = 35, face = "bold")) + theme(legend.text = element_text(face = "bold")) + guides(shape = guide_legend(override.aes = list(size = 5)))
     # Print to tiff.
     print(plot)
     # Turn off dev.
     dev.off()
   }
 }
+
