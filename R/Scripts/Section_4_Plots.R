@@ -47,12 +47,14 @@ source("R/Functions/Plot_Functions.R")
 ### 2. Data loading and variable assignment. ----
 
 # Read in cleaned complete-case trait dataset.
-dfCC <- fread("Data/TraitData/CompleteCase/NearlyCompleteCaseDataset.csv", data.table = F)
+fileName <- choose.files()
+dfCC <- fread(fileName, data.table = F)
 dfCC$V1 <- NULL # Rm misc column.
 # Ensure blanks are NAs.
 dfCC[dfCC == ""] <- NA
 # Read in the cleaned original trait dataset.
-dfRaw <- fread("Data/TraitData/OriginalTraitDatasets/Cleaned_Raw_Lizards.csv", data.table = F)
+fileName <- choose.files()
+dfRaw <- fread(fileName, data.table = F)
 # Ensure blanks are NAs.
 dfRaw[dfRaw == ""] <- NA
 
@@ -90,12 +92,12 @@ phyloSignal <- "lambda"
 
 # Read in the error rate files as dataframes.
 # Identify file names.
-errorFiles <- list.files(path = "Results/ErrorRates/All/", pattern = "_ErrorRates.csv")
+errorFiles <- list.files(path = "Results/All/", pattern = "_ErrorRates.csv")
 # Get MCAR results.
 index <- grep("MCAR", x = errorFiles)
 errorFiles <- errorFiles[index]
 # Read in error files.
-l_dfErrors <- lapply(paste("Results/ErrorRates/All/", errorFiles, sep = ""), fread, data.table = F)
+l_dfErrors <- lapply(paste("Results/All/", errorFiles, sep = ""), fread, data.table = F)
 # Name according to file.
 names(l_dfErrors) <- errorFiles
   
@@ -165,9 +167,9 @@ for(t in 1:length(traits)) {
 
 # Read in the error rate files as dataframes.
 # Identify file names.
-errorFiles <- list.files(path = "Results/ErrorRates/All/", pattern = "_ErrorRates.csv")
+errorFiles <- list.files(path = "Results/All/", pattern = "_ErrorRates.csv")
 # Read in error files.
-l_dfErrors <- lapply(paste("Results/ErrorRates/All/", errorFiles, sep = ""), fread, data.table = F)
+l_dfErrors <- lapply(paste("Results/All/", errorFiles, sep = ""), fread, data.table = F)
 # Name according to file.
 names(l_dfErrors) <- errorFiles
 
