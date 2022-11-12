@@ -99,8 +99,8 @@ missPatts <- c("MCAR", "MAR", "MNAR")
 # Error rate file handling. ---
 # Section 2 wrote error files for each trait and imputation method. Now we must read those files into R. For example, I have relocated the error files to a folder called Results/ErrorRates/All/.
 # Read in the error rate files as dataframes.
-errorFiles <- list.files(path = "Results/ErrorRates/All/", pattern = "_ErrorRates.csv")
-l_dfErrors <- lapply(paste("Results/ErrorRates/All/", errorFiles, sep = ""), fread, data.table = F)
+errorFiles <- list.files(path = "Results/All/", pattern = "_ErrorRates.csv")
+l_dfErrors <- lapply(paste("Results/All/", errorFiles, sep = ""), fread, data.table = F)
 # Name according to file.
 names(l_dfErrors) <- errorFiles
 # Get names of all unique trait/imputation method combos (cleaning up the names here).
@@ -126,8 +126,8 @@ for(m in 1:length(allMethodCombos)){
 # Parameter file handling. ---
 # Repeat same steps to handle the parameter files.
 # Read in the parameter files as dataframes.
-paramFiles <- list.files(path = "Results/ErrorRates/All/", pattern = "_Parameters.csv")
-l_dfParams <- lapply(paste("Results/ErrorRates/All/", paramFiles, sep = ""), fread, data.table = F)
+paramFiles <- list.files(path = "Results/All/", pattern = "_Parameters.csv")
+l_dfParams <- lapply(paste("Results/All/", paramFiles, sep = ""), fread, data.table = F)
 # Name according to file.
 names(l_dfParams) <- paramFiles
 # Create a list to hold parameter dataframes for each method.
@@ -202,9 +202,6 @@ l_BEST <- lapply(l_l_winningImp, function(x) names(sort(table(unlist(x)), decrea
 # The best method overall is...drum roll..!:
 optMethod <- names(sort(table(unlist(l_BEST)), decreasing = T))[1]
 optMethod
-# The best method for MAR (most biologically realistic scenario is)...more drum roll..!:
-#optMAR <- l_BEST[[which(names(l_BEST) == "MAR")]]
-optMAR <- optMethod
 
 # Let's find the parameter values that performed best for our optimal method.
 
@@ -221,27 +218,25 @@ for(d in 1:length(l_dfParamsAll)){
 # Bind all dataframes in l_dfParamsAll.
 dfParamsAll <- bind_rows(l_dfParamsAll)
 
-# Subset to only those parameters used for our optimal method.
-dfParamsOpt <- dfParamsAll[grepl(optMAR, x = dfParamsAll$trait_method) & dfParamsAll$missingness_level == "MAR", ]
+# Subset to only those parameters used for our optimal method (using MAR parameters).
+dfParamsOpt <- dfParamsAll[grepl(optMethod, x = dfParamsAll$trait_method) & dfParamsAll$missingness_level == "MAR", ]
 # Create a trait column.
-dfParamsOpt$trait <- gsub(pattern = paste("_", optMAR, sep = ""), replacement = "", dfParamsOpt$trait_method)
+dfParamsOpt$trait <- gsub(pattern = paste("_", optMethod, sep = ""), replacement = "", dfParamsOpt$trait_method)
 # Extract parameter values.
-#bestParams <- dfParamsOpt$param
-bestParams <- c(100, 1000, 1000, 1000, 100)
+bestParams <- dfParamsOpt$param
 # Name according to traits.
 names(bestParams) <- dfParamsOpt$trait
 
 # For those traits that could not be simulated MAR, select best parameter based on 0.1 MCAR results (e.g. values are less than 10% missing in these cases).
 traitsNOMAR <- setdiff(traits, names(bestParams))
 # Subset to MCAR and MNAR results.
-dfParamsNOMAR <- dfParamsAll[grepl(optMAR, x = dfParamsAll$trait_method) & dfParamsAll$missingness_level == "0.1", ]
+dfParamsNOMAR <- dfParamsAll[grepl(optMethod, x = dfParamsAll$trait_method) & dfParamsAll$missingness_level == "0.1", ]
 # Create a trait column.
-dfParamsNOMAR$trait <- gsub(pattern = paste("_", optMAR, sep = ""), replacement = "", dfParamsNOMAR$trait_method)
+dfParamsNOMAR$trait <- gsub(pattern = paste("_", optMethod, sep = ""), replacement = "", dfParamsNOMAR$trait_method)
 # Subset to traitsNOMAR.
 dfParamsNOMAR <- dfParamsNOMAR[dfParamsNOMAR$trait %in% traitsNOMAR, ]
 # Extract parameter values.
-#bestParamsNOMAR <- dfParamsNOMAR$param
-bestParamsNOMAR <- c(1000, 100)
+bestParamsNOMAR <- dfParamsNOMAR$param
 # Name according to traits.
 names(bestParamsNOMAR) <- dfParamsNOMAR$trait
 # Append to bestParams.
@@ -295,9 +290,9 @@ for(cat in 1:length(catRes)){
 # Final check for class imbalances.
 mapply(ScreenCategories, variable = na.omit(dfRaw[, catTraits]), varName = catTraits)
 # For example, to remove rows based on condition:
-dfRaw <- dfRaw[!(dfRaw$body_shape %in% "eel-like" | dfRaw$body_shape %in% "other"), ] ## Removing these
-dfRaw <- dfRaw[!(dfRaw$envtemp %in% "boreal" | dfRaw$envtemp %in% "deep-water" |  dfRaw$envtemp %in% "high altitude" | dfRaw$envtemp %in% "polar"), ] 
-dfRaw <- dfRaw[!(dfRaw$habitat %in% "bathydemersal" | dfRaw$habitat %in% "bathypelagic" |  dfRaw$habitat %in% "pelagic" | dfRaw$habitat %in% "pelagic-neritic" | dfRaw$habitat %in% "pelagic-oceanic"), ] 
+# dfRaw <- dfRaw[!(dfRaw$body_shape %in% "eel-like" | dfRaw$body_shape %in% "other"), ] ## Removing these
+# dfRaw <- dfRaw[!(dfRaw$envtemp %in% "boreal" | dfRaw$envtemp %in% "deep-water" |  dfRaw$envtemp %in% "high altitude" | dfRaw$envtemp %in% "polar"), ] 
+# dfRaw <- dfRaw[!(dfRaw$habitat %in% "bathydemersal" | dfRaw$habitat %in% "bathypelagic" |  dfRaw$habitat %in% "pelagic" | dfRaw$habitat %in% "pelagic-neritic" | dfRaw$habitat %in% "pelagic-oceanic"), ] 
 
 # Selecting predictors. ---
 # Here, we select those traits that have significant correlations to use as predictors for imputation (this will vary for each trait).
@@ -317,7 +312,6 @@ l_evs <- AppendEigenvectors(data = dfRaw, vars = traits, tree = ultraTree, predi
 l_dfRawEV <- l_evs[[1]]
 # Extract updated list of predictors (with appended eigenvectors).
 l_EVPredictors <- l_evs[[2]]
-
 
 
 ### 6. Final imputation. ----
@@ -350,11 +344,17 @@ for(t in 1:length(traits)) {
     dfRawMiss <- dfRaw
   }
   # If optimal method is KNN..
-  if(grepl("KNN", optMAR)){
+  if(grepl("KNN", optMethod)){
     # Impute using kNN and optimal value of k.
     dfImputed <- kNN(dfRawMiss, variable = trait, dist_var = preds, k = param)
     # If optimal method is RF..
-  } else if(grepl("RF", optMAR)){
+  } else if(grepl("RF", optMethod)){
+    # For RF, if param = 1, change to 100; if param = 2, change to 1000;
+    if(param == 1){
+      param <- 100
+    } else if(param == 2){
+      param <- 1000
+    }
     # Impute the dataset (which contains the trait in question and its predictors) using missForest and optimal value of ntree.
     imputedRF <- missForest(as.data.frame(dfRawMiss[, c(trait, preds)]), ntree = param)
     # Access the imputed dataframe.
@@ -362,7 +362,7 @@ for(t in 1:length(traits)) {
     # Round the imputed count data.
     dfImputed[, intTraits] <- lapply(dfImputed[, intTraits], function(x) as.integer(round(x)))
     # If optimal method is MICE..
-  } else if(grepl("MICE", optMAR)){
+  } else if(grepl("MICE", optMethod)){
     
     # If phylogenetic imputation was selected..
     if(phyImp == T){
