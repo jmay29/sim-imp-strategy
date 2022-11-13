@@ -55,6 +55,7 @@ source("R/Functions/DataHandling_Functions.R")
 source("R/Functions/Imputation_Functions.R")
 source("R/Functions/Phylo_Functions.R")
 source("R/Functions/Simpute_Functions.R")
+source("R/Functions/ParlMICEWrapper_Functions.R")
 
 ### 2. Data loading and variable assignment. ----
 
@@ -100,9 +101,9 @@ dfRaw[, speciesCol] <- gsub(" ", "_", dfRaw[, speciesCol])
 # Also ensure underscores in the tip labels of your tree if using phylogenetic imputation!
 
 # Create an integer for the number of replicates to use for missingness simulations and imputation. Default here is 10 replicates.
-r <- 10
+r <- 2
 # If simulating data missing completely at random (MCAR), create an integer for the maximum proportion of missingness to simulate (e.g. 0.4 would include simulations at 0.1, 0.2, 0.3. and 0.4 missingness). Default here is 0.4 missingness.
-ml <- 0.4
+ml <- 0.3
 
 # Missing not at random (MNAR) variable assignment. ---
 # If simulating data missing NOT at random (MNAR), uncomment the following lines and adjust according to your needs:
