@@ -4,6 +4,7 @@
 # mice() function in the "mice" package for imputation.
 # Citations: van Buuren S, Groothuis-Oudshoorn K. MICE: Multivariate Imputation by Chained Equations in R. J Stat Softw. 2011;45(3):1–67. R package v. 3.13.0.
 # https://cran.r-project.org/web/packages/mice/mice.pdf.
+# https://rdrr.io/cran/mice/src/R/check.R
 
 check.dataform <- function(data) {
   if (!(is.matrix(data) || is.data.frame(data)))
@@ -91,10 +92,10 @@ parlmiceMOD <- function (data, m = 5, seed = NA, cluster.seed = NA, n.core = NUL
 ParlMiceWrapper <- function(data, cluster.seed, n.core, n.imp.core, maxit, predictorMatrix, ...) {
   
   # This is a function to call parlmice from within another function. Credit to user JoshuaSimon on https://github.com/amices/mice/issues/189 (January 2022).
-
+  
   imputedMICE <- parlmiceMOD(data = data, cluster.seed = cluster.seed,
-                          n.core = n.core, n.imp.core = n.imp.core, 
-                          maxit = maxit, predictorMatrix = predictorMatrix)
+                             n.core = n.core, n.imp.core = n.imp.core, 
+                             maxit = maxit, predictorMatrix = predictorMatrix)
   return(imputedMICE)
 }
 

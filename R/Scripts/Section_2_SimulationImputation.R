@@ -103,7 +103,7 @@ dfRaw[, speciesCol] <- gsub(" ", "_", dfRaw[, speciesCol])
 # Create an integer for the number of replicates to use for missingness simulations and imputation. Default here is 10 replicates.
 r <- 2
 # If simulating data missing completely at random (MCAR), create an integer for the maximum proportion of missingness to simulate (e.g. 0.4 would include simulations at 0.1, 0.2, 0.3. and 0.4 missingness). Default here is 0.4 missingness.
-ml <- 0.3
+ml <- 0.4
 
 # Missing not at random (MNAR) variable assignment. ---
 # If simulating data missing NOT at random (MNAR), uncomment the following lines and adjust according to your needs:
