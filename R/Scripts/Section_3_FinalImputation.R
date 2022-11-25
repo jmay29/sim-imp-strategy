@@ -288,7 +288,7 @@ for(cat in 1:length(catRes)){
 }
 
 # Final check for class imbalances.
-mapply(ScreenCategories, variable = na.omit(dfRaw[, catTraits]), varName = catTraits)
+mapply(ScreenCategories, variable = dfRaw[, catTraits], varName = catTraits)
 # For example, to remove rows based on condition:
 # dfRaw <- dfRaw[!(dfRaw$body_shape %in% "eel-like" | dfRaw$body_shape %in% "other"), ] ## Removing these
 # dfRaw <- dfRaw[!(dfRaw$envtemp %in% "boreal" | dfRaw$envtemp %in% "deep-water" |  dfRaw$envtemp %in% "high altitude" | dfRaw$envtemp %in% "polar"), ] 
@@ -316,7 +316,7 @@ l_EVPredictors <- l_evs[[2]]
 
 ### 6. Final imputation. ----
 
-set.seed(547)
+set.seed(161)
 
 # Replicate dfRaw so we can impute the missing values in a new dataset.
 dfRawImp <- dfRaw
@@ -339,6 +339,9 @@ for(t in 1:length(traits)) {
   if(phyImp == T){
     # Take the tth dfRawEV.
     dfRawMiss <- l_dfRawEV[[grep(trait, names(l_EVPredictors))]] 
+    # Ensure dfRawMiss and dfRaw are in the same order.
+    dfRawMiss <- dfRawMiss[order(dfRawMiss$species_name), ]
+    dfRaw <- dfRaw[order(dfRaw$species_name), ]
   } else {
     # Make a copy of dfRaw to impute.
     dfRawMiss <- dfRaw
