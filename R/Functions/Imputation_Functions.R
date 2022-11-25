@@ -1672,19 +1672,57 @@ SimMAR <- function(model, data){
   preds <- sapply(indNA, function(x) ifelse(test = is.na(x), x, rbinom(x, n = 1, size = 1)))
   # Check that missingness proportion is at least 8% of trait data so that we that sample size for error rate calculations are reliable.
   zerosProp <- sum(na.omit(preds) == 0)/length(na.omit(preds))
+  # Create counter for while loop.
+  counter <- 1
   # If missingness proportion is less than 0.08 (0s in preds vector)..
   if(zerosProp < 0.08){
-    # While the proportion is less than 0.08..
-    while (zerosProp < 0.08) {
-      # Reduce intercept in model by half.
-      model$coefficients[1] <- (model$coefficients[1])/2
+    # While the proportion is less than 0.08 and counter less than 10..
+    while (zerosProp < 0.08 & counter < 10) {
+      # If sign of intercept is positive..
+      if(sign(model$coefficients[1]) == 1 & model$coefficients[1] > 1){
+        # Reduce intercept in model by half.
+        model$coefficients[1] <- (model$coefficients[1])/2
+        # If sign of intercept is negative..
+      } else if(sign(model$coefficients[1]) == 1 & model$coefficients[1] < 1){
+        # Multiply intercept by -2.
+        model$coefficients[1] <- (model$coefficients[1])*(-2)
+      } else if(sign(model$coefficients[1]) == -1){
+        # Multiply intercept by 2.
+        model$coefficients[1] <- (model$coefficients[1])*2
+      }
       # Estimate new probabilities. 
       indNA <- predict.glm(model, newdata = dfCov, type = "response")
       # Generate new values following a binomial distribution
       preds <- sapply(indNA, function(x) ifelse(test = is.na(x), x, rbinom(x, n = 1, size = 1)))
       # Recalculate zerosProp.
       zerosProp <- sum(na.omit(preds) == 0)/length(na.omit(preds))
+      # Update counter.
+      counter <- counter + 1
     }
+    
+    # Extract coefficients from model.
+    fit <- summary(model)$coefficients
+    # Excluding intercept term, identify significant coefficients (must do in case there are multilevel categorical covariates).
+    sigCov <- names(which(fit[-1, 4] < 0.05))
+    
+    # While the proportion is less than 0.08 and counter less than 20..
+    while (zerosProp < 0.08 & counter < 20) {
+      
+      # Multiply positive sigCov in model by 2.
+      coVars <- ifelse(names(model$coefficients) %in% sigCov & sign(model$coefficients) == 1, model$coefficients*2, model$coefficients)
+      names(coVars) <- names(model$coefficients)
+      # Replace coefficients in model.
+      model$coefficients <- coVars
+      # Estimate new probabilities. 
+      indNA <- predict.glm(model, newdata = dfCov, type = "response")
+      # Generate new values following a binomial distribution
+      preds <- sapply(indNA, function(x) ifelse(test = is.na(x), x, rbinom(x, n = 1, size = 1)))
+      # Recalculate zerosProp.
+      zerosProp <- sum(na.omit(preds) == 0)/length(na.omit(preds))
+      # Update counter.
+      counter <- counter + 1
+    }
+    
   }
   # If the response is a factor (categorical) type..
   if(class(dfMissing[, response]) == "factor"){
