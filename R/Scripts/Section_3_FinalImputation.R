@@ -341,10 +341,10 @@ for(t in 1:length(traits)) {
     dfRawMiss <- l_dfRawEV[[grep(trait, names(l_EVPredictors))]] 
     # Ensure dfRawMiss and dfRaw are in the same order.
     dfRawMiss <- dfRawMiss[order(dfRawMiss$species_name), ]
-    dfRaw <- dfRaw[order(dfRaw$species_name), ]
+    dfRawImp <- dfRawImp[order(dfRawImp$species_name), ]
   } else {
     # Make a copy of dfRaw to impute.
-    dfRawMiss <- dfRaw
+    dfRawMiss <- dfRawImp
   }
   # If optimal method is KNN..
   if(grepl("KNN", optMethod)){
