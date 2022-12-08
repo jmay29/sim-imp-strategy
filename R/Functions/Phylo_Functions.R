@@ -32,8 +32,8 @@ AppendEigenvectors <- function(data, vars, tree, predictors){
     colnames(dfTraitEVs)[index] <- paste(colnames(dfTraitEVs)[index], trait, sep = "_")
     # Assign eigenvector names to a variable (without species_name).
     eigenvectors <- colnames(dfTraitEVs[, -ncol(dfTraitEVs)])
-    # Identify the predictors for the trait in question.
-    index <- grep(trait, names(predictors))
+    # Identify the predictors for the trait in question (adding regex so we don't accidentally match multiple traits).
+    index <- grep(paste("^", trait, "$", sep = ""), names(predictors))
     # Update the names of the predictors.
     newPreds <- c(predictors[[index]], eigenvectors)
     # Append the eigenvectors to data.
