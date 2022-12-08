@@ -1475,8 +1475,10 @@ SelectPredictors <- function(data) {
         response <- dfSubset[, resName]
         # Take the predictor column.
         pred <- dfSubset[, predictorName]
-        # If the predictor is numeric (0 levels) OR there are 2 categories in the predictor (binary)...
-        if(length(levels(pred)) == 0 | length(levels(pred)) == 2) {
+        # Relevel pred so we can detect invariant categorical traits in the subset.
+        if(class(pred) == "factor") {pred <- factor(pred)}
+        # If the predictor is numeric (0 levels) OR there are 2 categories in the predictor (binary) AND variation in the predictor...
+        if(length(levels(pred)) == 0 | length(levels(pred)) == 2 ) {
           # Fit glm model with gaussion family specified.
           fit <- glm(response ~ pred, family = "gaussian")
           # Extract the p-values from the model.
@@ -1522,6 +1524,8 @@ SelectPredictors <- function(data) {
         response <- dfSubset[, resName]
         # Take the predictor column.
         pred <- dfSubset[, predictorName]
+        # Relevel pred so we can detect invariant categorical traits in the subset.
+        if(class(pred) == "factor") {pred <- factor(pred)}
         # If the predictor is numeric (0 levels) OR there are 2 categories in the predictor (binary)...
         if(length(levels(pred)) == 0 | length(levels(pred)) == 2) {
           # Fit glm model with poisson family specified.
@@ -1569,6 +1573,8 @@ SelectPredictors <- function(data) {
           response <- dfSubset[, resName]
           # Take the predictor column.
           pred <- dfSubset[, predictorName]
+          # Relevel pred so we can detect invariant categorical traits in the subset.
+          if(class(pred) == "factor") {pred <- factor(pred)}
           # If the predictor is numeric (0 levels) OR there are 2 categories in the predictor (binary)...
           if(length(levels(pred)) == 0 | length(levels(pred)) == 2) {
             # Fit glm model with binomial family specified. Every other variable in the dataframe will be specified as the predictor variable in turn.
@@ -1613,6 +1619,8 @@ SelectPredictors <- function(data) {
           response <- dfSubset[, resName]
           # Take the predictor column.
           pred <- dfSubset[, predictorName]
+          # Relevel pred so we can detect invariant categorical traits in the subset.
+          if(class(pred) == "factor") {pred <- factor(pred)}
           # Fit multinom model. Every other variable in the dataframe will be specified as the predictor variable in turn.
           # Fit the null model.
           fitNULL <- multinom(response ~ 1)
@@ -1736,7 +1744,7 @@ SimMAR <- function(model, data){
   
 }
 
-SimCatMNAR <- function(var, category, proportion = 0.15){
+SimCatMNAR <- function(var, category, proportion = 0.10){
   
   # Function for simulating data that are missing not at random (MNAR) in categorical variables.
   # var = categorical (factor) vector in which to introduce NAs MNAR
