@@ -7,10 +7,10 @@ BreakIntoTypes <- function(data, traitCols) {
   # data = dataframe containing trait and taxonomic data
   # traitsCols = columns containing trait data
   
-  # Identify categorical traits.
-  catTraits <- GetTraitNames(data = data[, traitCols], class = "character")
-  # Identify binary traits and append them to catTraits as they will also be treated as factors.
-  binTraits <- GetTraitNames(data = data[, traitCols], class = "binary")
+  # Identify categorical traits. Specifying drop = F for single traits so we can preserve dataframe format.
+  catTraits <- GetTraitNames(data = data[, traitCols, drop = F], class = "character")
+  # Identify binary traits and append them to catTraits as they will also be treated as factors. Omitting NAs so NA isn't considered its own category.
+  binTraits <- GetTraitNames(data = na.omit(data[, traitCols, drop = F]), class = "binary")
   catTraits <- c(binTraits, catTraits)
   # Convert categorical traits to factors to differentiate them from numeric traits.
   # If there is more than 1 categorical trait..
@@ -20,9 +20,19 @@ BreakIntoTypes <- function(data, traitCols) {
     # if there's only one categorical trait..
   } else if(length(catTraits) == 1){
     data[[catTraits]] <- as.factor(data[[catTraits]])
+    # If there aren't any categorical traits..
+  } else if(length(catTraits) == 0){
+    # Assign NA to catTraits.
+    catTraits <- NA
   }
-  # Identify continuous traits.
-  contTraits <- GetTraitNames(data = data[, traitCols], class = "numeric")
+  
+  # Identify numerical traits.
+  contTraits <- GetTraitNames(data = data[, traitCols, drop = F], class = "numeric")
+  # If there aren't any numerical traits..
+  if(length(contTraits) == 0){
+    # Assign NA to contTraits.
+    contTraits <- NA
+  }
   
   # Combine contTraits and catTraits into a list.
   l_traits <- list(contTraits, catTraits)
