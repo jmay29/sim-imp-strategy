@@ -531,6 +531,66 @@ BackTransform <- function(origData, tfData, missData, cols) {
   return(tfData)
 }
 
+BackTransformNorm <- function(origData, tfData, missData = NULL, cols, type = "norm") {
+  
+  # Function for applying back-transformations to a dataframe's continuous variables. This function takes into account whether a variable contains negative values originally.
+  
+  # origData = dataframe containing untransformed data
+  # tfData = dataframe containing transformed continuous data
+  # missData = dataframe containing missingness information (needed for log type transformation)
+  # cols = column names in tfData to backtransform
+  # type = one of "norm" or "log" to indicate what type of transformation was originally performed on the data
+  
+  # Ensure they are all in dataframe format.
+  origData <- as.data.frame(origData)
+  tfData <- as.data.frame(tfData)
+  missData <- as.data.frame(missData)
+  
+  # If the data were normalized (scaled)..
+  if(type == "norm"){
+    
+    # Calculate mean of each numeric trait in origData.
+    l_means <- lapply(origData[, cols], mean, na.rm = T)
+    # Calculate SDs of each numeric trait in original dfCC.
+    l_sds <- lapply(origData[, cols], sd, na.rm = T)
+    # Backtransform using Unscale function.
+    tfData[, cols] <- mapply(Unscale, vector = tfData[, cols], scale = l_sds, centre = l_means)
+    
+    # If the data were log-transformed..
+  } else if(type == "log"){
+    
+    # For continuous traits, check which ones contain negative values in original data. 
+    negTest <- lapply(origData[, cols, drop = F], function(x) sum(na.omit(x) < 0) > 0)
+    negCols <- cols[which(negTest == T)]
+    # Apply exp function to all other columns.
+    expCols <- setdiff(cols, negCols)
+    # If there's more than one expCols
+    if(length(expCols) > 1){
+      # Lapply exp function.
+      tfData[, expCols] <- lapply(tfData[, expCols], exp)
+    } else {
+      # Apply exp function to one column.
+      tfData[, expCols] <- exp(tfData[, expCols])
+    }
+    # If a column with negative data was identified..
+    if(length(negCols) > 0){
+      # For every column in negCols..
+      for(i in 1:length(negCols)){
+        # Take the ith negCol.
+        negCol <- negCols[[i]]
+        # Apply ExpNegative function using imputed and original data.
+        btCol <- ExpNegative(variable = tfData[, negCol], original = origData[, negCol], missing = missData[, negCol])
+        # Replace column in tfData.
+        tfData[, negCol] <- btCol
+      }
+    }
+    
+  }
+  
+  # Return dataframe with backtransformed values.
+  return(tfData)
+}
+
 BindAndOrganize <- function(data, vars, indMiss = T){
   
   # Function that binds missingness indicator columns (bind_shadow function from the "naniar" package) and reorganizes the columns in the dataframe.
@@ -1259,6 +1319,9 @@ ImputeRF <- function(dfTrue, dfMissing, cols, cont, cat, inter = NULL, ntrees, p
   }
   # Rearrange columns in l_dfImputedParam.
   l_dfImputedParam <- lapply(l_dfImputedParam, function(x) x[, c("species_name", cols, missingCols)])
+  
+  closeAllConnections()
+  
   # Return list of error rates for each trait and parameter value and list of imputed dataframes for each parameter value.
   return(list(l_dfImputedParam = l_dfImputedParam, l_ErrorParams = l_ErrorParams))
 }
@@ -1827,6 +1890,21 @@ SimContMNAR <- function(var, quantile = 0.9, direction = "greater", absolute = F
   var[index] <- NA
   # Return var.
   return(var)
+  
+}
+
+Unscale <- function(vector, scale, centre){
+  
+  # Function for backtransforming normalized data.
+  # vector = numeric vector
+  # scale = sd of data
+  # centre = mean of data
+  
+  # Multiply by scale value and add centre value.
+  unscaled <- as.vector((vector * scale) + centre)
+  
+  # Return unscaled data.
+  return(unscaled)
   
 }
 
