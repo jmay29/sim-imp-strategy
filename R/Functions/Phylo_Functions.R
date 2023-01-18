@@ -21,7 +21,7 @@ AppendEigenvectors <- function(data, vars, tree, predictors){
     # Make a complete-case subset of trait data.
     dfTrait <- na.omit(data[, c("species_name", trait)])
     # Decompose phylogenetic distrance matrix into orthogonal vectors (phylogenetic eigenvectors).
-    PEMtrait <- DecomposeTree(tree = tree, data = dfTrait, trait = trait, method = "PEM", evselection = "cutoff", cutoff = 65)
+    PEMtrait <- DecomposeTree(tree = tree, data = dfTrait, trait = trait, method = "PEM", evselection = "cutoff", cutoff = 75)
     # Update the PEM using derived parameters and extract the eigenvectors so we also have them for species with missing data (cite: Johnson et al. 2021).
     dfTraitEVs <- UpdatePEM(tree, alpha = PEMtrait$a, rate = PEMtrait$psi)
     # Subset to those eigenvectors selected according to the cutoff threshold.
@@ -43,6 +43,47 @@ AppendEigenvectors <- function(data, vars, tree, predictors){
   }
   # Return list of dataframes and modified predictors.
   return(list(l_dfMiss, l_newPreds))
+  
+}
+
+AppendEigenvectorsPVR <- function(data, vars, tree, predictors){
+  
+  # Function for appending eigenvectors to dataframe containing trait data with missing values (PVR version). Returns a dataframe with appended phylogenetic eigenvectors.
+  
+  # data = dataframe with missing values
+  # vars = names of traits (columns in data)
+  # tree = phylo object
+  # predictors = list of predictors for each trait
+  
+  # Create a list to hold names of updated predictors.
+  l_newPreds <- CreateNamedList(listLength = length(vars), elementNames = vars)
+  
+  # Decompose phylogenetic distrance matrix into orthogonal vectors (phylogenetic eigenvectors).
+  dfTraitEVs <- DecomposeTree(tree = tree, data = data, method = "PVR", evselection = "cutoff", cutoff = 75)
+  # Identify column numbers of the eigenvectors.
+  index <- grep("^c", colnames(dfTraitEVs))
+  # Assign eigenvector names to a variable (without species_name).
+  eigenvectors <- colnames(dfTraitEVs)[index]
+  
+  # For every trait..
+  for(t in 1:length(vars)){
+    # Take the tth trait.
+    trait <- vars[[t]]
+    # Identify the predictors for the trait in question (adding regex so we don't accidentally match multiple traits).
+    index <- grep(paste("^", trait, "$", sep = ""), names(predictors))
+    # Update the names of the predictors.
+    newPreds <- c(predictors[[index]], eigenvectors)
+    # Append the updated predictors.
+    l_newPreds[[t]] <- newPreds
+  }
+  
+  # Merge dfTraitEVs with original data.
+  dfTraitEVs <- merge(dfTraitEVs, data, by = "species_name")
+  # Organize columns.
+  dfTraitEVs <- dfTraitEVs[, c("species_name", vars, eigenvectors)]
+  
+  # Return dataframe with appended eigenvectors and modified predictors.
+  return(list(dfTraitEVs, l_newPreds))
   
 }
 
