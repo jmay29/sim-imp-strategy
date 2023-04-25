@@ -333,7 +333,7 @@ PasteColNames <- function(df, colNames, string, ...) {
   
 }
 
-ScreenCategories <- function(variable, varName, threshold = 0.10) {
+ScreenCategories <- function(variable, varName, threshold = 0.10, rmNAs = F) {
   
   # Function for determining whether a variable contains categories with observations below a certain threshold.
   
@@ -341,8 +341,14 @@ ScreenCategories <- function(variable, varName, threshold = 0.10) {
   # varName = names of variable
   # threshold = numeric threshold (e.g. 0.10)
   
-  # Count the number of observations per category.
-  counts <- plyr::count(variable)
+  if(rmNAs == F){
+    # Count the number of observations per category.
+    counts <- plyr::count(variable) 
+  }
+  else if(rmNAs == T){
+    # Count the number of observations per category, not considering NAs.
+    counts <- plyr::count(na.omit(variable)) 
+  }
   # Calculate the proportions for each category.
   proportions <- counts$freq/sum(counts$freq)
   # Name the proportions according to category.
