@@ -209,6 +209,73 @@ DropAndMatch <- function(tree, data){
   
 }
 
+ReadAndMerge <- function(..., col, newName) {
+  
+  # Function for reading in and merging sequence data into one dataframe. Also renames the first column to "species_name"
+  
+  # col = column name to merge by
+  # newName = name to rename first column
+  
+  # Read in the alignments. Only retaining alignments with n > 100 for now.
+  l_df <- ReadInAlignments(...)
+  # Merge all of the dataframes using Reduce().
+  dfMerge <- Reduce(function(...) merge(..., by = col, all = T), l_df)
+  # Rename species_name column.
+  colnames(dfMerge)[1] <- newName
+  
+  return(dfMerge)
+  
+}
+
+ReadInAlignments <- function(filePattern, fileType) {
+  
+  # Function for reading in alignments and returning a list of dataframes with record title and sequence data.
+  
+  # filePattern = Character vector containing common pattern in fasta file names
+  # fileType = should be one of "fasta" or "phy"
+  
+  if(fileType == "fasta") {
+    # Read the fasta files in.
+    fastaFiles <- list.files(pattern = filePattern)
+    l_fastaFiles <- lapply(fastaFiles, readDNAStringSet)
+    # Convert them into dataframes.
+    l_dfFastaFiles <- lapply(l_fastaFiles, function(x) data.frame(Title = names(x), Sequence = paste(x) ))
+    return(l_dfFastaFiles)
+    
+  } else if(fileType == "phy") {
+    
+    # Read the phy files in.
+    phyFiles <- list.files(pattern = filePattern)
+    l_dfPhyFiles <- lapply(phyFiles, read.phylip)
+    # Name the list of dataframes.
+    names(l_dfPhyFiles) <- phyFiles
+    
+    for (i in 1:length(phyFiles)) {
+      
+      # Take the ith dataframe in the list.
+      df <- l_dfPhyFiles[[i]]
+      # Take the ith file name in the vector.
+      info <- phyFiles[[i]]
+      
+      # Name the columns in each of the dataframes according to the name of the file.
+      # Append gene name to 2nd column name (column containing seq info).
+      colnames(df)[2] <- paste(info, colnames(df)[2], sep = "_")
+      
+      # Replace dataframe.
+      l_dfPhyFiles[[i]] <- df
+      
+    }
+    
+    return(l_dfPhyFiles)
+    
+  } else {
+    
+    print("Something is wrong!")
+    
+  }
+  
+}
+
 TestPhyloSig <- function(df, colName, phylo, sig = "lambda") {
   
   # Function that estimates phylogenetic signal of the trait given a phylogenetic tree.
