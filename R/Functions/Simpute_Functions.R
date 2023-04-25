@@ -90,9 +90,12 @@ MeanModeSimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1) {
       # Apply the Backtransform function to the continuous traits.
       dfImp <- BackTransform(origData = dfOrig, tfData = dfImp, missData = dfMiss, cols = contTraits)
       # If there are any integer traits..
-      if(length(intTraits) > 0){
-        # Round to nearest whole number.
+      if(length(intTraits) > 1){
+        # Round to nearest whole number using lapply.
         dfImp[, intTraits] <- lapply(dfImp[, intTraits], function(x) as.integer(round(x)))
+      } else if(length(intTraits) == 1){ 
+        # Round to nearest whole number.
+        dfImp[, intTraits] <- as.integer(round(dfImp[, intTraits]))
       }
       
       # Append results to sth element of lists. 
@@ -241,9 +244,12 @@ MeanModeSimputeMAR <- function(data, raw, vars, int = 100) {
     # Apply the Backtransform function to the continuous traits.
     dfImp <- BackTransform(origData = dfOrig, tfData = dfImp, missData = dfMiss, cols = contTraits)
     # If there are any integer traits..
-    if(length(intTraits) > 0){
-      # Round to nearest whole number.
+    if(length(intTraits) > 1){
+      # Round to nearest whole number using lapply.
       dfImp[, intTraits] <- lapply(dfImp[, intTraits], function(x) as.integer(round(x)))
+    } else if(length(intTraits) == 1){ 
+      # Round to nearest whole number.
+      dfImp[, intTraits] <- as.integer(round(dfImp[, intTraits]))
     }
     
     # Append to ith elements of lists.
@@ -423,9 +429,12 @@ MeanModeSimputeMNAR <- function(data, vars, int = 100, quantiles = NULL, directi
     # Apply the Backtransform function to the continuous traits.
     dfImp <- BackTransform(origData = dfOrig, tfData = dfImp, missData = dfMiss, cols = contTraits)
     # If there are any integer traits..
-    if(length(intTraits) > 0){
-      # Round to nearest whole number.
+    if(length(intTraits) > 1){
+      # Round to nearest whole number using lapply.
       dfImp[, intTraits] <- lapply(dfImp[, intTraits], function(x) as.integer(round(x)))
+    } else if(length(intTraits) == 1){ 
+      # Round to nearest whole number.
+      dfImp[, intTraits] <- as.integer(round(dfImp[, intTraits]))
     }
     
     # Append to ith elements of lists.
@@ -1339,9 +1348,12 @@ RFSimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1, ntrees = c(100
           dfImp[, trait] <- dfImpBTrait[, trait]
         }
         # If there are any integer traits..
-        if(length(intTraits) > 0){
-          # Round to nearest whole number.
+        if(length(intTraits) > 1){
+          # Round to nearest whole number using lapply.
           dfImp[, intTraits] <- lapply(dfImp[, intTraits], function(x) as.integer(round(x)))
+        } else if(length(intTraits) == 1){ 
+          # Round to nearest whole number.
+          dfImp[, intTraits] <- as.integer(round(dfImp[, intTraits]))
         }
         # Replace dfImp in l_dfImp with newly backtransformed dataset.
         l_dfImp[[d]] <- dfImp
@@ -1559,9 +1571,12 @@ RFSimputeMAR <- function(data, raw, vars, int = 100, ntrees = c(100, 1000), phyI
       # Apply BackTransform function to contTraits in dfImp.
       dfImp <- BackTransform(origData = dfOrig, tfData = dfImp, missData = dfMiss, cols = traitsMAR[traitsMAR %in% contTraits])
       # If there are any integer traits..
-      if(length(intTraits) > 0){
-        # Round to nearest whole number.
+      if(length(intTraits) > 1){
+        # Round to nearest whole number using lapply.
         dfImp[, intTraits] <- lapply(dfImp[, intTraits], function(x) as.integer(round(x)))
+      } else if(length(intTraits) == 1){ 
+        # Round to nearest whole number.
+        dfImp[, intTraits] <- as.integer(round(dfImp[, intTraits]))
       }
       # Replace dfImp in l_dfImp with newly backtransformed dataset.
       l_dfImp[[d]] <- dfImp
@@ -1861,9 +1876,12 @@ RFSimputeMNAR <- function(data, vars, int = 100, ntrees = c(100, 1000), quantile
         dfImp[, trait] <- dfImpBTrait[, trait]
       }
       # If there are any integer traits..
-      if(length(intTraits) > 0){
-        # Round to nearest whole number.
+      if(length(intTraits) > 1){
+        # Round to nearest whole number using lapply.
         dfImp[, intTraits] <- lapply(dfImp[, intTraits], function(x) as.integer(round(x)))
+      } else if(length(intTraits) == 1){ 
+        # Round to nearest whole number.
+        dfImp[, intTraits] <- as.integer(round(dfImp[, intTraits]))
       }
       # Replace dfImp in l_dfImp with newly backtransformed dataset.
       l_dfImp[[d]] <- dfImp
@@ -2107,9 +2125,12 @@ MICESimputeMCAR <- function(data, vars, int = 100, missLevel = 0.1, mSets = c(5,
           dfImp[, trait] <- dfImpBTrait[, trait]
         }
         # If there are any integer traits..
-        if(length(intTraits) > 0){
-          # Round to nearest whole number.
+        if(length(intTraits) > 1){
+          # Round to nearest whole number using lapply.
           dfImp[, intTraits] <- lapply(dfImp[, intTraits], function(x) as.integer(round(x)))
+        } else if(length(intTraits) == 1){ 
+          # Round to nearest whole number.
+          dfImp[, intTraits] <- as.integer(round(dfImp[, intTraits]))
         }
         # Replace dfImp in l_dfImp with newly backtransformed dataset.
         l_dfImp[[d]] <- dfImp
@@ -2369,9 +2390,12 @@ MICESimputeMAR <- function(data, raw, vars, int = 100, mSets = c(5, 10, 40), phy
       # Apply BackTransform function to contTraits in dfImp.
       dfImp <- BackTransform(origData = dfOrig, tfData = dfImp, missData = dfMiss, cols = traitsMAR[traitsMAR %in% contTraits])
       # If there are any integer traits..
-      if(length(intTraits) > 0){
-        # Round to nearest whole number.
+      if(length(intTraits) > 1){
+        # Round to nearest whole number using lapply.
         dfImp[, intTraits] <- lapply(dfImp[, intTraits], function(x) as.integer(round(x)))
+      } else if(length(intTraits) == 1){ 
+        # Round to nearest whole number.
+        dfImp[, intTraits] <- as.integer(round(dfImp[, intTraits]))
       }
       # Replace dfImp in l_dfImp with newly backtransformed dataset.
       l_dfImp[[d]] <- dfImp
@@ -2756,9 +2780,12 @@ MICESimputeMNAR <- function(data, vars, int = 100, mSets = c(5, 10, 40), quantil
         dfImp[, trait] <- dfImpBTrait[, trait]
       }
       # If there are any integer traits..
-      if(length(intTraits) > 0){
-        # Round to nearest whole number.
+      if(length(intTraits) > 1){
+        # Round to nearest whole number using lapply.
         dfImp[, intTraits] <- lapply(dfImp[, intTraits], function(x) as.integer(round(x)))
+      } else if(length(intTraits) == 1){ 
+        # Round to nearest whole number.
+        dfImp[, intTraits] <- as.integer(round(dfImp[, intTraits]))
       }
       # Replace dfImp in l_dfImp with newly backtransformed dataset.
       l_dfImp[[d]] <- dfImp
